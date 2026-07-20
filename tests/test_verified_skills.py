@@ -98,9 +98,7 @@ def test_model_proposed_app_launch_requires_one_time_confirmation() -> None:
 
 def test_pending_model_action_can_be_cancelled_without_side_effect() -> None:
     plan = Plan(
-        actions=(
-            Action(ActionKind.OPEN_URL, {"url": "https://github.com/", "purpose": "site"}),
-        ),
+        actions=(Action(ActionKind.OPEN_URL, {"url": "https://github.com/", "purpose": "site"}),),
         source=PlanSource.OLLAMA,
     )
     runtime, effects, audit, ledger = _runtime(FixedPlanner(plan))
