@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 UI_ROOT = Path("src/future_assistant/ui")
 
 
