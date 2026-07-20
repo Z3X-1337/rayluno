@@ -32,6 +32,12 @@ jobs:
       - name: Compile source
         run: python -m compileall -q src
 
+      - name: Check desktop JavaScript syntax
+        run: |
+          node --check src/future_assistant/ui/app.js
+          node --check src/future_assistant/ui/today.js
+          node --check src/future_assistant/ui/verified.js
+
       - name: Run tests
         run: python -m pytest --junitxml=pytest-results.xml
 
