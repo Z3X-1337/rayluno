@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="dark" />
     <title data-i18n="documentTitle">Rayluno — مساعدك الشخصي</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="today.css" />
   </head>
   <body>
     <div class="ambient ambient-a" aria-hidden="true"></div>
@@ -175,8 +176,62 @@
             <button type="button" data-command-key="quickCalculatorCommand" data-i18n="quickCalculatorLabel">الحاسبة</button>
             <button type="button" data-command-key="quickTimeCommand" data-i18n="quickTimeLabel">الوقت</button>
             <button type="button" data-command-key="quickSearchCommand" data-i18n="quickSearchLabel">بحث سريع</button>
+            <button type="button" id="quick-agenda" class="today-quick-action" data-i18n="quickAgendaLabel">خطة اليوم</button>
+            <button type="button" id="quick-reminder" class="today-quick-action" data-i18n="quickReminderLabel">تذكير سريع</button>
           </div>
         </section>
+
+        <aside
+          class="panel today-panel"
+          data-i18n-aria-label="todayPanelLabel"
+          aria-label="لوحة اليوم"
+        >
+          <div class="panel-heading today-heading">
+            <span>
+              <small data-i18n="todayEyebrow">القيادة الشخصية</small>
+              <b data-i18n="todayTitle">اليوم</b>
+            </span>
+            <span class="live-dot" data-i18n-title="todayLiveTitle" title="بيانات محلية مباشرة"><i></i></span>
+          </div>
+
+          <section class="focus-card" aria-live="polite">
+            <small data-i18n="todayFocusLabel">التركيز المقترح</small>
+            <b id="today-focus-title" data-i18n="todayNoFocus">لا توجد أولوية عاجلة</b>
+            <span id="today-focus-meta" data-i18n="todayReadyMeta">يومك تحت السيطرة</span>
+          </section>
+
+          <div class="today-stats" data-i18n-aria-label="todayStatsLabel" aria-label="ملخص اليوم">
+            <span><b id="today-overdue-count">0</b><small data-i18n="todayOverdue">متأخر</small></span>
+            <span><b id="today-task-count">0</b><small data-i18n="todayTasks">مهام اليوم</small></span>
+            <span><b id="today-soon-count">0</b><small data-i18n="todaySoon">قريب</small></span>
+          </div>
+
+          <section class="next-reminder-card">
+            <div>
+              <small data-i18n="todayNextReminder">التذكير القادم</small>
+              <b id="next-reminder-title" data-i18n="todayNoReminder">لا يوجد تذكير قادم</b>
+            </div>
+            <time id="next-reminder-time">—</time>
+          </section>
+
+          <section class="today-agenda">
+            <div class="today-section-title">
+              <b data-i18n="todayAgendaLabel">الالتزامات</b>
+              <small id="today-agenda-count">0</small>
+            </div>
+            <ol id="today-agenda-list">
+              <li class="today-empty" data-i18n="todayEmpty">ابدأ بإضافة مهمة أو تذكير</li>
+            </ol>
+          </section>
+
+          <div class="today-privacy">
+            <span aria-hidden="true">⌾</span>
+            <span>
+              <b data-i18n="todayLocalTitle">ذاكرة محلية</b>
+              <small data-i18n="todayLocalNote">المهام والتذكيرات لا تغادر جهازك</small>
+            </span>
+          </div>
+        </aside>
       </section>
 
       <footer>
@@ -330,5 +385,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
     <script src="app.js"></script>
+    <script src="today.js"></script>
   </body>
 </html>

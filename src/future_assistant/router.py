@@ -3,9 +3,15 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
+from datetime import datetime
 
 from .actions import ActionFactory, normalize_text
+from .agenda_commands import AgendaCommandPlanner
 from .domain import Plan, PlanSource, VolumeOperation
+from .reminders import AgendaService, ReminderService, SQLiteReminderStore
+from .task_commands import TaskCommandPlanner
+from .tasks import SQLiteTaskStore, TaskService
 
 
 class DeterministicRouter:
@@ -30,8 +36,24 @@ class DeterministicRouter:
         "current time",
     }
 
-    def __init__(self, actions: ActionFactory) -> None:
+    def __init__(
+        self,
+        actions: ActionFactory,
+        task_service: TaskService | None = None,
+        reminder_service: ReminderService | None = None,
+        clock: Callable[[], datetime] | None = None,
+    ) -> None:
         self.actions = actions
+        service = task_service or TaskService(
+            SQLiteTaskStore(actions.config.tasks_path), clock=clock
+        )
+        reminders = reminder_service or ReminderService(
+            SQLiteReminderStore(actions.config.reminders_path), clock=clock
+        )
+        self.agenda_commands = AgendaCommandPlanner(
+            reminders, AgendaService(service, reminders, clock=clock)
+        )
+        self.task_commands = TaskCommandPlanner(service)
 
     @staticmethod
     def _plan(action, reply: str | None = None) -> Plan:  # noqa: ANN001
@@ -48,6 +70,14 @@ class DeterministicRouter:
         volume = self._route_volume(normalized)
         if volume is not None:
             return volume
+
+        agenda = self.agenda_commands.plan(normalized, command)
+        if agenda is not None:
+            return agenda
+
+        tasks = self.task_commands.plan(normalized, command)
+        if tasks is not None:
+            return tasks
 
         youtube = self._route_youtube(normalized)
         if youtube is not None:

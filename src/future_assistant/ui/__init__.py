@@ -1,5 +1,7 @@
 """Desktop user interface for the assistant."""
 
-from .window import DesktopApi, DesktopVoiceController, start_desktop
+from .today_window import DesktopVoiceController, TodayDesktopApi, start_desktop
+
+DesktopApi = TodayDesktopApi
 
 __all__ = ["DesktopApi", "DesktopVoiceController", "start_desktop"]

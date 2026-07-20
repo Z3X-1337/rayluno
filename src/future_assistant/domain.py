@@ -25,12 +25,14 @@ class VolumeOperation(StrEnum):
 class PlanSource(StrEnum):
     DETERMINISTIC = "deterministic"
     OLLAMA = "ollama"
+    DEMO = "demo"
 
 
 class RuntimeStatus(StrEnum):
     SLEEPING = "sleeping"
     AWAKE = "awake"
     UNHANDLED = "unhandled"
+    CONFIRMATION_REQUIRED = "confirmation_required"
     COMPLETED = "completed"
     PARTIAL = "partial"
     BLOCKED = "blocked"
