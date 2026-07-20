@@ -9,6 +9,8 @@ from future_assistant.memory import MemoryService, SQLiteMemoryStore
 from .verified_window import (
     DesktopVoiceController,
     VerifiedDesktopApi,
+)
+from .verified_window import (
     start_desktop as start_verified_desktop,
 )
 
