@@ -13,11 +13,12 @@ from .doctor import CheckStatus, check_environment, format_report
 from .domain import RuntimeStatus
 from .entitlements import EntitlementService, build_default_entitlement_service
 from .identity import PRODUCT_NAME
+from .judge_demo import JudgeDemoPlanner
 from .licensing import LicensingError
 from .ollama import OllamaClient
 from .product_settings import load_settings
 from .runtime import DryRunEffects, without_wake_word
-from .verified_runtime import build_verified_runtime
+from .verified_runtime import VerifiedAssistantRuntime, build_verified_runtime
 from .voice import VoiceSettings, build_voice_loop
 
 
@@ -35,8 +36,19 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--ui", action="store_true", help="افتح واجهة سطح المكتب")
     parser.add_argument("--voice", action="store_true", help="شغّل الاستماع الصوتي في الطرفية")
     parser.add_argument("--doctor", action="store_true", help="افحص جاهزية الجهاز دون تغيير شيء")
+    parser.add_argument(
+        "--judge-demo",
+        action="store_true",
+        help="فعّل مسار عرض معلنًا وقابلًا للتكرار دون نموذج أو مفتاح API",
+    )
     parser.add_argument("--debug-ui", action="store_true", help=argparse.SUPPRESS)
     return parser
+
+
+def _with_judge_demo(runtime: VerifiedAssistantRuntime, enabled: bool) -> VerifiedAssistantRuntime:
+    if enabled:
+        runtime.runtime.planner = JudgeDemoPlanner(runtime.runtime.planner)
+    return runtime
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -66,7 +78,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         checks = check_environment(config, voice_settings)
         print(format_report(checks))
         return 2 if any(item.status is CheckStatus.FAIL for item in checks) else 0
-    if args.no_wake_word:
+    if args.no_wake_word or args.judge_demo:
         config = without_wake_word(config)
 
     entitlements: EntitlementService | None
@@ -101,12 +113,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 3
-    runtime = build_verified_runtime(
-        config,
-        effects=effects,
-        audit=audit,
-        ollama_client=client,
-        feature_checker=has_feature,
+    runtime = _with_judge_demo(
+        build_verified_runtime(
+            config,
+            effects=effects,
+            audit=audit,
+            ollama_client=client,
+            feature_checker=has_feature,
+        ),
+        args.judge_demo,
     )
 
     if args.ui:
@@ -114,12 +129,15 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         assert voice_settings is not None
         ui_config = without_wake_word(config)
-        ui_runtime = build_verified_runtime(
-            ui_config,
-            effects=effects,
-            audit=audit,
-            ollama_client=client,
-            feature_checker=has_feature,
+        ui_runtime = _with_judge_demo(
+            build_verified_runtime(
+                ui_config,
+                effects=effects,
+                audit=audit,
+                ollama_client=client,
+                feature_checker=has_feature,
+            ),
+            args.judge_demo,
         )
         try:
             start_desktop(
@@ -136,12 +154,15 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.voice:
         assert voice_settings is not None
-        voice_runtime = build_verified_runtime(
-            without_wake_word(config),
-            effects=effects,
-            audit=audit,
-            ollama_client=client,
-            feature_checker=has_feature,
+        voice_runtime = _with_judge_demo(
+            build_verified_runtime(
+                without_wake_word(config),
+                effects=effects,
+                audit=audit,
+                ollama_client=client,
+                feature_checker=has_feature,
+            ),
+            args.judge_demo,
         )
 
         def on_command(command: str) -> str | None:
