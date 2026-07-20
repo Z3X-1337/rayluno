@@ -15,6 +15,10 @@ The pre-submission review covered planning, registered skills, operating-system 
 7. Sensitive local state must receive restrictive permissions where supported.
 8. Explicit Judge Mode may exercise bounded voice and local-AI paths without a paid license.
 
+## Verification
+
+The remediation branch is accepted only after the complete Windows/Ubuntu and Python 3.11/3.13 CI matrix passes, including the original suite and the new adversarial regression tests.
+
 ## Honest boundary
 
 The authenticated local checkpoint is not a hardware-backed signature or a remote transparency log. Deleting every local trust-state file cannot be distinguished from a clean installation without a hardware or remote witness. Rayluno states this limitation rather than claiming impossible local-only guarantees.
