@@ -136,9 +136,7 @@ class VerifiedDesktopApi(TodayDesktopApi):
             "integrity_ok": integrity_ok,
             "receipts": receipts,
             "message": (
-                "سلسلة الإيصالات سليمة."
-                if integrity_ok
-                else "فشل التحقق من سلسلة الإيصالات."
+                "سلسلة الإيصالات سليمة." if integrity_ok else "فشل التحقق من سلسلة الإيصالات."
             ),
         }
 
