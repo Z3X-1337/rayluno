@@ -55,7 +55,9 @@ class CapabilityRule:
 
     def __post_init__(self) -> None:
         if (self.skill_id is None) == (self.permission_prefix is None):
-            raise ValueError("Exactly one of skill_id or permission_prefix is required.")
+            raise ValueError(
+                "Exactly one of skill_id or permission_prefix is required."
+            )
         if self.skill_id is not None:
             object.__setattr__(
                 self,
@@ -77,8 +79,9 @@ class CapabilityRule:
         if self.skill_id is not None:
             return manifest.skill_id == self.skill_id
         assert self.permission_prefix is not None
-        return manifest.permission == self.permission_prefix or manifest.permission.startswith(
-            f"{self.permission_prefix}."
+        return (
+            manifest.permission == self.permission_prefix
+            or manifest.permission.startswith(f"{self.permission_prefix}.")
         )
 
     def precedence(self) -> tuple[int, int, int]:
@@ -139,7 +142,8 @@ class ElevatedSession:
         if now >= self.expires_at or manifest.skill_id not in self.allowed_skill_ids:
             return False
         return any(
-            manifest.permission == prefix or manifest.permission.startswith(f"{prefix}.")
+            manifest.permission == prefix
+            or manifest.permission.startswith(f"{prefix}.")
             for prefix in self.permission_prefixes
         )
 
@@ -246,24 +250,38 @@ class CapabilityPolicyEngine:
                     elevation_satisfied=True,
                 )
             if self.profile is PermissionProfile.SAFE:
-                return PolicyDecision(PermissionDecision.DENY, "safe_profile_blocks_critical")
-            return PolicyDecision(PermissionDecision.ELEVATE, "critical_skill_requires_elevation")
+                return PolicyDecision(
+                    PermissionDecision.DENY, "safe_profile_blocks_critical"
+                )
+            return PolicyDecision(
+                PermissionDecision.ELEVATE, "critical_skill_requires_elevation"
+            )
 
         if self.profile is PermissionProfile.SAFE:
             if manifest.risk is SkillRisk.LOW and source is PlanSource.DETERMINISTIC:
-                return PolicyDecision(PermissionDecision.ALLOW, "safe_low_deterministic")
-            return PolicyDecision(PermissionDecision.CONFIRM, "safe_profile_confirmation")
+                return PolicyDecision(
+                    PermissionDecision.ALLOW, "safe_low_deterministic"
+                )
+            return PolicyDecision(
+                PermissionDecision.CONFIRM, "safe_profile_confirmation"
+            )
 
         if self.profile is PermissionProfile.BALANCED:
             if manifest.risk is SkillRisk.LOW:
                 return PolicyDecision(PermissionDecision.ALLOW, "balanced_low_risk")
             if manifest.risk is SkillRisk.MEDIUM and source is PlanSource.DETERMINISTIC:
-                return PolicyDecision(PermissionDecision.ALLOW, "balanced_medium_deterministic")
-            return PolicyDecision(PermissionDecision.CONFIRM, "balanced_profile_confirmation")
+                return PolicyDecision(
+                    PermissionDecision.ALLOW, "balanced_medium_deterministic"
+                )
+            return PolicyDecision(
+                PermissionDecision.CONFIRM, "balanced_profile_confirmation"
+            )
 
         if manifest.risk in {SkillRisk.LOW, SkillRisk.MEDIUM}:
             return PolicyDecision(PermissionDecision.ALLOW, "power_user_low_or_medium")
-        return PolicyDecision(PermissionDecision.CONFIRM, "power_user_high_risk_confirmation")
+        return PolicyDecision(
+            PermissionDecision.CONFIRM, "power_user_high_risk_confirmation"
+        )
 
     @staticmethod
     def _is_elevated(
