@@ -84,8 +84,7 @@ class PushToTalkVoiceLoop:
                 )
                 if not utterance or self._stop_event.is_set():
                     raise VoiceConfigurationError(
-                        "لم ألتقط كلامًا واضحًا. اضغط زر الميكروفون وتحدث مباشرة "
-                        "خلال ثلاث ثوانٍ."
+                        "لم ألتقط كلامًا واضحًا. اضغط زر الميكروفون وتحدث مباشرة خلال ثلاث ثوانٍ."
                     )
                 text = self.transcriber.transcribe(
                     utterance,
@@ -159,9 +158,7 @@ def _build_safe_voice_loop(
 
     return PushToTalkVoiceLoop(
         stream_factory=lambda: MicrophoneStream(device=settings.microphone_device),
-        recorder=UtteranceRecorder(
-            UtteranceRecorderConfig(rms_threshold=settings.rms_threshold)
-        ),
+        recorder=UtteranceRecorder(UtteranceRecorderConfig(rms_threshold=settings.rms_threshold)),
         transcriber=transcriber,
         on_command=on_command,
         speaker=speaker,
