@@ -44,7 +44,9 @@ class DeterministicRouter:
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.actions = actions
-        service = task_service or TaskService(SQLiteTaskStore(actions.config.tasks_path), clock=clock)
+        service = task_service or TaskService(
+            SQLiteTaskStore(actions.config.tasks_path), clock=clock
+        )
         reminders = reminder_service or ReminderService(
             SQLiteReminderStore(actions.config.reminders_path), clock=clock
         )
