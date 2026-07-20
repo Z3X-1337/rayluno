@@ -14,7 +14,6 @@ from typing import Protocol
 
 from .identity import COMPATIBILITY_DATA_DIRECTORY
 from .local_security import secure_directory, secure_file
-from .local_security import secure_directory, secure_file
 from .tasks import Task, TaskPriority, TaskService
 
 _MAX_TITLE_LENGTH = 240

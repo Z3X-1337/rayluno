@@ -14,8 +14,12 @@ from typing import Protocol
 from urllib.parse import parse_qsl, urlsplit
 
 from .domain import Action, ActionKind
-from .local_security import keyed_digest, load_or_create_key, secure_directory, secure_file
-from .local_security import keyed_digest, load_or_create_key, secure_directory, secure_file
+from .local_security import (
+    keyed_digest,
+    load_or_create_key,
+    secure_directory,
+    secure_file,
+)
 
 
 @dataclass(frozen=True, slots=True)

@@ -16,7 +16,6 @@ from typing import Protocol
 
 from .identity import COMPATIBILITY_DATA_DIRECTORY
 from .local_security import secure_directory, secure_file
-from .local_security import secure_directory, secure_file
 
 _MAX_STATEMENT_LENGTH = 280
 _SOURCE_USER_EXPLICIT = "user_explicit"
