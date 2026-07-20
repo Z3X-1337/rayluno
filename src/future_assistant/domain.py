@@ -25,6 +25,7 @@ class VolumeOperation(StrEnum):
 class PlanSource(StrEnum):
     DETERMINISTIC = "deterministic"
     OLLAMA = "ollama"
+    DEMO = "demo"
 
 
 class RuntimeStatus(StrEnum):
