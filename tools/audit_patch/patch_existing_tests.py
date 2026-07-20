@@ -26,9 +26,9 @@ def patch_verified_skills() -> None:
         '    entry["status"] = "failed"\n'
         '    path.write_text(json.dumps(entry, ensure_ascii=False) + "\\n", encoding="utf-8")\n',
         '    lines = path.read_text(encoding="utf-8").splitlines()\n'
-        '    entry = json.loads(lines[-1])\n'
+        "    entry = json.loads(lines[-1])\n"
         '    entry["status"] = "failed"\n'
-        '    lines[-1] = json.dumps(entry, ensure_ascii=False)\n'
+        "    lines[-1] = json.dumps(entry, ensure_ascii=False)\n"
         '    path.write_text("\\n".join(lines) + "\\n", encoding="utf-8")\n',
     )
     write(path, text)
@@ -37,7 +37,9 @@ def patch_verified_skills() -> None:
 def patch_judge_demo() -> None:
     path = "tests/test_judge_demo.py"
     text = read(path)
-    text = replace_if_present(text, "    assert len(ledger.receipts) == 4\n", "    assert len(ledger.receipts) == 6\n")
+    text = replace_if_present(
+        text, "    assert len(ledger.receipts) == 4\n", "    assert len(ledger.receipts) == 6\n"
+    )
     text = replace_if_present(
         text,
         '        "confirmation_requested",\n'

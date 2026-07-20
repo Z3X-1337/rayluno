@@ -198,11 +198,14 @@ class DesktopApi:
         status["activation_configured"] = self._online_activation_available
         status["refresh_available"] = self._refresh_state_available
         status["judge_mode"] = self._judge_mode
+        status["judge_mode"] = self._judge_mode
         return status
 
     def _has_feature(self, feature: str) -> bool:
         """Fail closed when a commercial capability cannot be verified."""
 
+        if self._judge_mode and feature in {"ai.local", "automation.pro", "voice.local"}:
+            return True
         if self._judge_mode and feature in {"ai.local", "automation.pro", "voice.local"}:
             return True
         if self._entitlements is None:

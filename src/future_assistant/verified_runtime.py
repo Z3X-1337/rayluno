@@ -614,6 +614,12 @@ class VerifiedAssistantRuntime:
         return "لم يُنفّذ أي إجراء لأن تعذّر ختم إثبات التصريح بالتنفيذ."
 
     @staticmethod
+    def _authorization_failure_message(language: Language) -> str:
+        if language is Language.EN:
+            return "No action was executed because authorization proof could not be sealed."
+        return "لم يُنفّذ أي إجراء لأن تعذّر ختم إثبات التصريح بالتنفيذ."
+
+    @staticmethod
     def _receipt_write_failure_message(language: Language) -> str:
         if language is Language.EN:
             return "The action ran, but its execution receipt could not be sealed safely."

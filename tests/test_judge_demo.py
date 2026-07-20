@@ -42,10 +42,12 @@ def test_judge_demo_is_labelled_and_requires_confirmation_without_a_model() -> N
 
     assert executed.status is RuntimeStatus.COMPLETED
     assert len(effects.operations) == 2
-    assert len(ledger.receipts) == 4
+    assert len(ledger.receipts) == 6
     assert [receipt.event for receipt in ledger.receipts] == [
         "confirmation_requested",
         "confirmation_requested",
+        "execution_authorized",
+        "execution_authorized",
         "execution",
         "execution",
     ]

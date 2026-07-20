@@ -105,7 +105,7 @@ def test_model_proposed_app_launch_requires_one_time_confirmation() -> None:
     assert pending is not None
     assert pending["confirmation_id"]
     assert pending["argument_digest"]
-    assert len(ledger.receipts) == 2
+    assert len(ledger.receipts) == 1
     assert ledger.receipts[0].event == "confirmation_requested"
     assert ledger.receipts[0].status == "pending"
 
@@ -168,7 +168,7 @@ def test_deterministic_registered_skill_executes_and_receipt_hides_query_values(
 
     assert result.status is RuntimeStatus.COMPLETED
     assert effects.operations[0][0] == "open_url"
-    assert len(ledger.receipts) == 1
+    assert len(ledger.receipts) == 2
     assert "secret-demo-query" not in repr(ledger.receipts)
     assert ledger.receipts[-1].action["query_keys"] == ["q"]
     assert ledger.receipts[-1].argument_keys == ("purpose", "url")
@@ -295,9 +295,11 @@ def test_tampered_receipt_file_disables_future_verified_execution(tmp_path) -> N
     assert completed.status is RuntimeStatus.COMPLETED
     assert first_effects.operations == [("current_time",)]
 
-    entry = json.loads(path.read_text(encoding="utf-8"))
+    lines = path.read_text(encoding="utf-8").splitlines()
+    entry = json.loads(lines[-1])
     entry["status"] = "failed"
-    path.write_text(json.dumps(entry, ensure_ascii=False) + "\n", encoding="utf-8")
+    lines[-1] = json.dumps(entry, ensure_ascii=False)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     tampered_ledger = HashChainedReceiptLedger(path, clock=clock)
     blocked_runtime, blocked_effects, _, _ = _runtime(
