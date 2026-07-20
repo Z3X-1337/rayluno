@@ -16,7 +16,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Final
 
-from .automation import ExecutionStatus, SkillInvocation, SkillManifest
+from .automation import ExecutionStatus, SkillInvocation
 from .automation.models import canonical_json
 from .verified_skills import (
     ExecutionReceipt,
@@ -146,11 +146,13 @@ class WorkflowPlan:
     @property
     def digest(self) -> str:
         value = "|".join(
-            (
-                step.step_id,
-                step.invocation.skill_id,
-                step.invocation.request_id,
-                canonical_json(step.invocation.arguments),
+            ":".join(
+                (
+                    step.step_id,
+                    step.invocation.skill_id,
+                    step.invocation.request_id,
+                    canonical_json(step.invocation.arguments),
+                )
             )
             for step in self.steps
         )
