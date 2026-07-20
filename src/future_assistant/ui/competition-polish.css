@@ -1,0 +1,326 @@
+:root {
+  --proof-success: #72f0bc;
+  --proof-warning: #ffd47a;
+  --proof-info: #70a7ff;
+  --proof-danger: #ff8193;
+  --proof-surface: rgba(9, 17, 28, 0.86);
+}
+
+.competition-trust-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-end: 4px;
+}
+
+.competition-trust-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid rgba(114, 240, 188, 0.16);
+  border-radius: 999px;
+  color: #a9c8c1;
+  background: rgba(114, 240, 188, 0.035);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.competition-trust-strip span::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--proof-success);
+  box-shadow: 0 0 9px rgba(114, 240, 188, 0.7);
+}
+
+.assistant-stage.competition-stage {
+  justify-content: center;
+  padding-top: 16px;
+  padding-bottom: 12px;
+}
+
+.competition-stage .orb {
+  width: min(29vh, 228px);
+  margin-top: 4px;
+}
+
+.competition-stage .transcript {
+  min-height: 48px;
+}
+
+.proof-journey {
+  width: min(760px, 94%);
+  margin: 10px auto 0;
+  padding: 12px 14px 11px;
+  border: 1px solid rgba(112, 167, 255, 0.16);
+  border-radius: 17px;
+  background:
+    linear-gradient(135deg, rgba(112, 167, 255, 0.055), rgba(114, 240, 188, 0.025)),
+    var(--proof-surface);
+  box-shadow:
+    0 18px 54px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(18px);
+}
+
+.proof-journey-header,
+.proof-command-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.proof-journey-header > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.proof-journey-header small {
+  color: #6f8992;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.proof-journey-header strong {
+  color: #e8f7f5;
+  font-size: 12px;
+  font-weight: 680;
+}
+
+.proof-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid rgba(112, 167, 255, 0.17);
+  border-radius: 999px;
+  color: #9fbaff;
+  background: rgba(112, 167, 255, 0.045);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.proof-live-badge::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--proof-info);
+  box-shadow: 0 0 8px rgba(112, 167, 255, 0.75);
+}
+
+.proof-steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  margin: 10px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.proof-steps::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 14px;
+  inset-inline: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(112, 167, 255, 0.2), transparent);
+}
+
+.proof-step {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding: 7px 5px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 11px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.018);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.proof-step-index {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  margin: 0 auto 4px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 50%;
+  color: #71838b;
+  background: #0a111c;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.proof-step b,
+.proof-step small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proof-step b {
+  color: #859aa2;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.proof-step small {
+  margin-top: 2px;
+  color: #586970;
+  font-size: 7px;
+}
+
+.proof-step.is-complete {
+  border-color: rgba(114, 240, 188, 0.15);
+  background: rgba(114, 240, 188, 0.025);
+}
+
+.proof-step.is-complete .proof-step-index {
+  color: #07120e;
+  border-color: transparent;
+  background: var(--proof-success);
+  box-shadow: 0 0 10px rgba(114, 240, 188, 0.32);
+}
+
+.proof-step.is-complete b {
+  color: #a9dcca;
+}
+
+.proof-step.is-active {
+  transform: translateY(-2px);
+  border-color: rgba(112, 167, 255, 0.34);
+  background: linear-gradient(145deg, rgba(112, 167, 255, 0.11), rgba(100, 234, 220, 0.045));
+  box-shadow: 0 10px 30px rgba(30, 85, 148, 0.13);
+}
+
+.proof-step.is-active .proof-step-index {
+  color: #07101d;
+  border-color: transparent;
+  background: var(--proof-info);
+  box-shadow: 0 0 13px rgba(112, 167, 255, 0.5);
+  animation: proof-focus 1.4s ease-in-out infinite;
+}
+
+.proof-step.is-active b {
+  color: #d8e5ff;
+}
+
+.proof-step.is-blocked {
+  border-color: rgba(255, 129, 147, 0.3);
+  background: rgba(255, 129, 147, 0.055);
+}
+
+.proof-step.is-blocked .proof-step-index {
+  color: #1a090c;
+  border-color: transparent;
+  background: var(--proof-danger);
+}
+
+.proof-step.is-blocked b {
+  color: #ffc1ca;
+}
+
+.proof-command-row {
+  min-height: 28px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.proof-command-row code {
+  min-width: 0;
+  overflow: hidden;
+  color: #d8e6e7;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proof-command-row span {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid rgba(114, 240, 188, 0.13);
+  border-radius: 999px;
+  color: #8fc6b2;
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.proof-value-line {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  width: min(760px, 94%);
+  margin-top: 8px;
+}
+
+.proof-value-line span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #70838a;
+  font-size: 8px;
+}
+
+.proof-value-line span::before {
+  content: "✓";
+  color: var(--proof-success);
+  font-size: 8px;
+}
+
+body[data-proof-state="complete"] .proof-journey {
+  border-color: rgba(114, 240, 188, 0.25);
+  box-shadow:
+    0 18px 54px rgba(0, 0, 0, 0.24),
+    0 0 40px rgba(114, 240, 188, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+body[data-proof-state="blocked"] .proof-journey {
+  border-color: rgba(255, 129, 147, 0.25);
+}
+
+@keyframes proof-focus {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@media (max-width: 1180px) {
+  .competition-trust-strip span:nth-child(2) { display: none; }
+  .proof-step small { display: none; }
+}
+
+@media (max-height: 700px) {
+  .competition-stage .orb { width: min(24vh, 180px); }
+  .proof-journey { margin-top: 5px; padding-block: 9px; }
+  .proof-value-line { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proof-step,
+  .proof-step-index {
+    transition: none;
+    animation: none !important;
+  }
+}
