@@ -38,8 +38,7 @@ def test_judge_demo_is_labelled_and_requires_confirmation_without_a_model() -> N
     assert len(effects.operations) == 2
     assert len(ledger.receipts) == 2
     assert all(
-        receipt.policy_reason == "demo_proposed_consequential_skill"
-        for receipt in ledger.receipts
+        receipt.policy_reason == "demo_proposed_consequential_skill" for receipt in ledger.receipts
     )
 
 
