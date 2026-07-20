@@ -16,7 +16,8 @@ from .identity import PRODUCT_NAME
 from .licensing import LicensingError
 from .ollama import OllamaClient
 from .product_settings import load_settings
-from .runtime import DryRunEffects, build_runtime, without_wake_word
+from .runtime import DryRunEffects, without_wake_word
+from .verified_runtime import build_verified_runtime
 from .voice import VoiceSettings, build_voice_loop
 
 
@@ -100,7 +101,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 3
-    runtime = build_runtime(
+    runtime = build_verified_runtime(
         config,
         effects=effects,
         audit=audit,
@@ -113,7 +114,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         assert voice_settings is not None
         ui_config = without_wake_word(config)
-        ui_runtime = build_runtime(
+        ui_runtime = build_verified_runtime(
             ui_config,
             effects=effects,
             audit=audit,
@@ -135,7 +136,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.voice:
         assert voice_settings is not None
-        voice_runtime = build_runtime(
+        voice_runtime = build_verified_runtime(
             without_wake_word(config),
             effects=effects,
             audit=audit,
