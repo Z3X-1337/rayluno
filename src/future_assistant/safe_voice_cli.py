@@ -1,4 +1,4 @@
-"""Crash-resistant Windows voice entry point using local Vosk transcription."""
+"""Crash-resistant Vosk entry point with a reversible competition presentation layer."""
 
 from __future__ import annotations
 
