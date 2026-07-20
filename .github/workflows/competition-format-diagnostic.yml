@@ -1,6 +1,7 @@
 name: Competition Format Diagnostic
 
 on:
+  pull_request:
   push:
     branches:
       - competition/ui-voice-proof-polish
