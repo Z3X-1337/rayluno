@@ -8,6 +8,11 @@ on:
       - "tools/judge_video/**"
       - "src/future_assistant/ui/**"
       - ".github/workflows/render-judge-video.yml"
+  pull_request:
+    paths:
+      - "tools/judge_video/**"
+      - "src/future_assistant/ui/**"
+      - ".github/workflows/render-judge-video.yml"
 
 permissions:
   contents: read
