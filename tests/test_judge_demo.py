@@ -26,20 +26,33 @@ def test_judge_demo_is_labelled_and_requires_confirmation_without_a_model() -> N
     )
 
     proposed = runtime.handle(JUDGE_DEMO_COMMAND_AR)
+    pending = runtime.pending_public()
 
     assert proposed.status is RuntimeStatus.CONFIRMATION_REQUIRED
     assert proposed.plan is not None
     assert proposed.plan.source is PlanSource.DEMO
     assert effects.operations == []
+    assert pending is not None
+    assert [receipt.event for receipt in ledger.receipts] == [
+        "confirmation_requested",
+        "confirmation_requested",
+    ]
 
-    executed = runtime.handle("تأكيد")
+    executed = runtime.approve(str(pending["confirmation_id"]))
 
     assert executed.status is RuntimeStatus.COMPLETED
     assert len(effects.operations) == 2
-    assert len(ledger.receipts) == 2
+    assert len(ledger.receipts) == 4
+    assert [receipt.event for receipt in ledger.receipts] == [
+        "confirmation_requested",
+        "confirmation_requested",
+        "execution",
+        "execution",
+    ]
     assert all(
         receipt.policy_reason == "demo_proposed_consequential_skill" for receipt in ledger.receipts
     )
+    assert ledger.verify_integrity()
 
 
 def test_judge_demo_can_show_fail_closed_behavior() -> None:

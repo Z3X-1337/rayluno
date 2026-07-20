@@ -16,7 +16,9 @@ class FixedPlanner:
         return self.plan_value
 
 
-def test_desktop_exposes_confirmation_and_receipt_without_raw_command(tmp_path) -> None:  # noqa: ANN001
+def test_desktop_exposes_one_time_confirmation_and_receipts_without_raw_command(
+    tmp_path,  # noqa: ANN001
+) -> None:
     plan = Plan(
         actions=(Action(ActionKind.OPEN_APP, {"app_id": "calculator"}),),
         source=PlanSource.OLLAMA,
@@ -41,16 +43,31 @@ def test_desktop_exposes_confirmation_and_receipt_without_raw_command(tmp_path) 
 
     assert proposed["status"] == RuntimeStatus.CONFIRMATION_REQUIRED.value
     assert proposed["confirmation"]["skill_id"] == "application.launch"
+    assert proposed["confirmation"]["confirmation_id"]
+    assert proposed["confirmation"]["argument_digest"]
     assert pending["pending"]["permission"] == "applications.launch"
+    assert pending["integrity_ok"] is True
+    assert pending["receipt_count"] == 1
+    assert pending["receipts"][0]["event"] == "confirmation_requested"
     assert effects.operations == []
     assert "السرية" not in repr(pending)
 
-    confirmed = api.execute_command("تأكيد")
+    confirmation_id = proposed["confirmation"]["confirmation_id"]
+    confirmed = api.approve_skill(confirmation_id)
     verified = api.get_verified_snapshot()
 
     assert confirmed["ok"] is True
     assert confirmed["receipt"]["receipt_id"].startswith("ryl-")
+    assert confirmed["receipt"]["confirmation_state"] == "approved"
     assert verified["pending"] is None
+    assert verified["integrity_ok"] is True
+    assert verified["receipt_count"] == 2
     assert verified["receipts"][0]["skill_id"] == "application.launch"
+    assert verified["receipts"][0]["event"] == "execution"
     assert verified["chain_head"] == verified["receipts"][0]["receipt_hash"]
+    assert effects.operations == [("open_app", "calculator")]
+
+    replay = api.approve_skill(confirmation_id)
+
+    assert replay["ok"] is False
     assert effects.operations == [("open_app", "calculator")]
