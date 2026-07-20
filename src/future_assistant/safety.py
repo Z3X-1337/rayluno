@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from urllib.parse import urlsplit
 
 from .config import AssistantConfig
@@ -42,6 +43,37 @@ class SafetyPolicy:
                 return SafetyDecision(False, "عملية الصوت غير مسموحة.")
             if isinstance(steps, bool) or not isinstance(steps, int) or not 1 <= steps <= 10:
                 return SafetyDecision(False, "درجة تغيير الصوت خارج النطاق الآمن.")
+            return SafetyDecision(True)
+        if action.kind is ActionKind.CREATE_TASK:
+            title = action.parameters.get("title")
+            priority = action.parameters.get("priority")
+            due = action.parameters.get("due")
+            if not isinstance(title, str) or not title.strip() or len(title) > 240:
+                return SafetyDecision(False, "عنوان المهمة غير صالح.")
+            if any(ord(character) < 32 for character in title):
+                return SafetyDecision(False, "عنوان المهمة يحتوي على محارف غير آمنة.")
+            if priority not in {"low", "normal", "high"}:
+                return SafetyDecision(False, "أولوية المهمة غير صالحة.")
+            if due not in {"none", "today", "tomorrow"}:
+                if not isinstance(due, str) or len(due) != 10:
+                    return SafetyDecision(False, "موعد المهمة غير صالح.")
+                try:
+                    date.fromisoformat(due)
+                except ValueError:
+                    return SafetyDecision(False, "موعد المهمة غير صالح.")
+            return SafetyDecision(True)
+        if action.kind is ActionKind.LIST_TASKS:
+            include_completed = action.parameters.get("include_completed")
+            limit = action.parameters.get("limit")
+            if not isinstance(include_completed, bool):
+                return SafetyDecision(False, "مرشح حالة المهام غير صالح.")
+            if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 50:
+                return SafetyDecision(False, "عدد المهام المطلوب خارج النطاق الآمن.")
+            return SafetyDecision(True)
+        if action.kind in {ActionKind.COMPLETE_TASK, ActionKind.DELETE_TASK}:
+            task_id = action.parameters.get("task_id")
+            if isinstance(task_id, bool) or not isinstance(task_id, int) or task_id < 1:
+                return SafetyDecision(False, "رقم المهمة غير صالح.")
             return SafetyDecision(True)
         return SafetyDecision(False, "نوع الإجراء غير مدعوم.")
 
