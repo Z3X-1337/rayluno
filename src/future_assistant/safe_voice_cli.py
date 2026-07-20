@@ -142,7 +142,7 @@ def _build_safe_voice_loop(
     on_command: CommandHandler,
     on_wake: WakeCallback | None = None,
     on_error: ErrorCallback | None = None,
-) -> VoiceLoop:
+) -> VoiceLoop | PushToTalkVoiceLoop:
     if settings.stt_backend != "vosk":
         return _ORIGINAL_BUILD_VOICE_LOOP(
             settings,
@@ -157,7 +157,7 @@ def _build_safe_voice_loop(
     if settings.tts_enabled and sys.platform == "win32":
         speaker = WindowsOneCoreSpeaker(voice_name_contains=settings.tts_voice_name)
 
-    loop = PushToTalkVoiceLoop(
+    return PushToTalkVoiceLoop(
         stream_factory=lambda: MicrophoneStream(device=settings.microphone_device),
         recorder=UtteranceRecorder(
             UtteranceRecorderConfig(rms_threshold=settings.rms_threshold)
@@ -168,7 +168,6 @@ def _build_safe_voice_loop(
         on_wake=on_wake,
         on_error=on_error,
     )
-    return loop  # type: ignore[return-value]
 
 
 def main(argv: Sequence[str] | None = None) -> int:
