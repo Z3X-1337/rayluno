@@ -258,8 +258,7 @@ class MemoryCommandPlanner:
     def _clear_confirmation_message(language: Language) -> str:
         if language is Language.AR:
             return (
-                "سأحذف كل الذاكرة الشخصية المحلية. للتأكيد خلال 60 ثانية قل: "
-                "تأكيد حذف كل الذاكرة."
+                "سأحذف كل الذاكرة الشخصية المحلية. للتأكيد خلال 60 ثانية قل: تأكيد حذف كل الذاكرة."
             )
         return (
             "I will delete all local personal memory. Within 60 seconds say: "
