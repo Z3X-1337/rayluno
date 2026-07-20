@@ -74,6 +74,7 @@ def test_safe_voice_entry_uses_vosk_for_arabic_commands(tmp_path) -> None:  # no
     assert isinstance(loop.transcriber, VoskTranscriber)
     assert loop.transcriber.model_path == arabic_model
     assert isinstance(loop.wake_detector, VoskWakeWordDetector)
+    assert loop.speaker is None
 
 
 def test_safe_voice_entry_selects_english_model_when_requested(tmp_path) -> None:  # noqa: ANN001
