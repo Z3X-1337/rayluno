@@ -245,6 +245,14 @@
     todayState.pollTimer = window.setInterval(pollDueReminders, 15_000);
   }
 
+  function loadVerifiedInterface() {
+    if (document.querySelector('script[data-rayluno-verified="true"]')) return;
+    const script = document.createElement("script");
+    script.src = "verified.js";
+    script.dataset.raylunoVerified = "true";
+    document.body.append(script);
+  }
+
   if (typeof applySnapshot === "function") {
     const baseApplySnapshot = applySnapshot;
     applySnapshot = function applySnapshotWithToday(snapshot = {}) {
@@ -284,4 +292,5 @@
 
   applyText();
   renderToday();
+  loadVerifiedInterface();
 })();
