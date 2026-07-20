@@ -18,7 +18,9 @@ JO = timezone(timedelta(hours=3))
 
 
 def _services(now: datetime):  # noqa: ANN001
-    clock = lambda: now
+    def clock() -> datetime:
+        return now
+
     tasks = TaskService(InMemoryTaskStore(), clock=clock)
     reminders = ReminderService(InMemoryReminderStore(), clock=clock)
     agenda = AgendaService(tasks, reminders, clock=clock)
@@ -94,7 +96,9 @@ def test_snooze_and_complete_commands() -> None:
 
 def test_sqlite_reminder_store_persists_delivery_and_snooze(tmp_path) -> None:  # noqa: ANN001
     now = datetime(2026, 7, 20, 9, 0, tzinfo=UTC)
-    service = ReminderService(SQLiteReminderStore(tmp_path / "reminders.sqlite3"), clock=lambda: now)
+    service = ReminderService(
+        SQLiteReminderStore(tmp_path / "reminders.sqlite3"), clock=lambda: now
+    )
     reminder = service.create_after("test", minutes=1)
 
     later = ReminderService(
