@@ -143,7 +143,8 @@ class SQLiteReminderStore:
             """
         )
         connection.execute(
-            "CREATE INDEX IF NOT EXISTS idx_reminders_due ON reminders(status, due_at, delivered_at, id)"
+            "CREATE INDEX IF NOT EXISTS idx_reminders_due "
+            "ON reminders(status, due_at, delivered_at, id)"
         )
         connection.commit()
         self._initialized = True
@@ -179,7 +180,12 @@ class SQLiteReminderStore:
                     delivered_at, completed_at, snooze_count
                 ) VALUES (?, ?, ?, 'pending', ?, NULL, NULL, 0)
                 """,
-                (clean_title, _datetime_text(due_at), priority.value, _datetime_text(created_at)),
+                (
+                    clean_title,
+                    _datetime_text(due_at),
+                    priority.value,
+                    _datetime_text(created_at),
+                ),
             )
             row = connection.execute(
                 "SELECT * FROM reminders WHERE id = ?", (cursor.lastrowid,)
@@ -432,8 +438,7 @@ class ReminderService:
         ):
             raise ValueError("Snooze duration must be between 1 minute and 24 hours.")
         return self.store.snooze(
-            reminder_id,
-            due_at=_aware(self.clock()) + timedelta(minutes=minutes),
+            reminder_id, due_at=_aware(self.clock()) + timedelta(minutes=minutes)
         )
 
     def poll_due(self, *, limit: int = 20) -> tuple[ReminderEvent, ...]:
@@ -463,7 +468,9 @@ class AgendaService:
         today = now.date()
         pending_tasks = tuple(self.tasks.list(limit=100))
         pending_reminders = tuple(self.reminders.list(limit=100))
-        overdue_tasks = tuple(task for task in pending_tasks if task.due_date and task.due_date < today)
+        overdue_tasks = tuple(
+            task for task in pending_tasks if task.due_date and task.due_date < today
+        )
         today_tasks = tuple(task for task in pending_tasks if task.due_date == today)
         unscheduled_tasks = tuple(task for task in pending_tasks if task.due_date is None)
         overdue_reminders = tuple(item for item in pending_reminders if item.due_at < now)
