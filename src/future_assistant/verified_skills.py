@@ -264,11 +264,10 @@ class HashChainedReceiptLedger:
     def verify_integrity(self, *, reload: bool = True) -> bool:
         with self._lock:
             try:
-                candidate = (
-                    self._read_file()
-                    if reload and self.path is not None
-                    else self._receipts
-                )
+                if reload and self.path is not None:
+                    candidate = self._read_file()
+                else:
+                    candidate = self._receipts
             except (OSError, ValueError, json.JSONDecodeError, KeyError, TypeError) as exc:
                 self._mark_invalid(type(exc).__name__)
                 return False
