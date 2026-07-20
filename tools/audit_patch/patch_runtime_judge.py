@@ -3,7 +3,7 @@ from __future__ import annotations
 from common import read, replace_once, write
 
 
-NEW_EXECUTE = '''    def _execute(
+NEW_EXECUTE = """    def _execute(
         self,
         command: str,
         language: Language,
@@ -76,17 +76,17 @@ NEW_EXECUTE = '''    def _execute(
         if confirmed and self.last_receipts:
             message = f"{message} {self._receipt_message(self.last_receipts[-1], language)}"
         return RuntimeResult(status, message, plan, executions)
-'''
+"""
 
 
 def patch_runtime() -> None:
     path = "src/future_assistant/verified_runtime.py"
     replace_once(
         path,
-        "                f\"risk:{first.manifest.risk.value};\"\n"
-        "                f\"confirmation:{pending.confirmation_id}\"\n",
-        "                f\"risk:{first.manifest.risk.value}\"\n",
-        marker="f\"risk:{first.manifest.risk.value}\"",
+        '                f"risk:{first.manifest.risk.value};"\n'
+        '                f"confirmation:{pending.confirmation_id}"\n',
+        '                f"risk:{first.manifest.risk.value}"\n',
+        marker='f"risk:{first.manifest.risk.value}"',
     )
     text = read(path)
     start = text.index("    def _execute(\n")
@@ -95,13 +95,12 @@ def patch_runtime() -> None:
         write(path, text[:start] + NEW_EXECUTE + text[end:])
     replace_once(
         path,
-        "    @staticmethod\n"
-        "    def _receipt_write_failure_message(language: Language) -> str:\n",
+        "    @staticmethod\n    def _receipt_write_failure_message(language: Language) -> str:\n",
         "    @staticmethod\n"
         "    def _authorization_failure_message(language: Language) -> str:\n"
         "        if language is Language.EN:\n"
-        "            return \"No action was executed because authorization proof could not be sealed.\"\n"
-        "        return \"لم يُنفّذ أي إجراء لأن تعذّر ختم إثبات التصريح بالتنفيذ.\"\n\n"
+        '            return "No action was executed because authorization proof could not be sealed."\n'
+        '        return "لم يُنفّذ أي إجراء لأن تعذّر ختم إثبات التصريح بالتنفيذ."\n\n'
         "    @staticmethod\n"
         "    def _receipt_write_failure_message(language: Language) -> str:\n",
         marker="def _authorization_failure_message",
@@ -114,7 +113,7 @@ def patch_judge_mode() -> None:
         path,
         "    def has_feature(feature: str) -> bool:\n"
         "        return bool(entitlements and entitlements.has_feature(feature))\n",
-        "    judge_features = frozenset({\"ai.local\", \"automation.pro\", \"voice.local\"})\n\n"
+        '    judge_features = frozenset({"ai.local", "automation.pro", "voice.local"})\n\n'
         "    def has_feature(feature: str) -> bool:\n"
         "        if args.judge_demo and feature in judge_features:\n"
         "            return True\n"
@@ -123,8 +122,7 @@ def patch_judge_mode() -> None:
     )
     replace_once(
         path,
-        "                debug=args.debug_ui,\n"
-        "            )\n",
+        "                debug=args.debug_ui,\n            )\n",
         "                debug=args.debug_ui,\n"
         "                judge_mode=args.judge_demo,\n"
         "            )\n",
@@ -134,8 +132,7 @@ def patch_judge_mode() -> None:
     path = "src/future_assistant/ui/window.py"
     replace_once(
         path,
-        "        ai_report_page_opener: Callable[[str], bool] | None = None,\n"
-        "    ) -> None:\n",
+        "        ai_report_page_opener: Callable[[str], bool] | None = None,\n    ) -> None:\n",
         "        ai_report_page_opener: Callable[[str], bool] | None = None,\n"
         "        judge_mode: bool = False,\n"
         "    ) -> None:\n",
@@ -152,12 +149,12 @@ def patch_judge_mode() -> None:
     )
     replace_once(
         path,
-        "        status[\"activation_configured\"] = self._online_activation_available\n"
-        "        status[\"refresh_available\"] = self._refresh_state_available\n",
-        "        status[\"activation_configured\"] = self._online_activation_available\n"
-        "        status[\"refresh_available\"] = self._refresh_state_available\n"
-        "        status[\"judge_mode\"] = self._judge_mode\n",
-        marker="status[\"judge_mode\"]",
+        '        status["activation_configured"] = self._online_activation_available\n'
+        '        status["refresh_available"] = self._refresh_state_available\n',
+        '        status["activation_configured"] = self._online_activation_available\n'
+        '        status["refresh_available"] = self._refresh_state_available\n'
+        '        status["judge_mode"] = self._judge_mode\n',
+        marker='status["judge_mode"]',
     )
     replace_once(
         path,
@@ -165,7 +162,7 @@ def patch_judge_mode() -> None:
         "            return False\n"
         "        try:\n"
         "            return self._entitlements.has_feature(feature)\n",
-        "        if self._judge_mode and feature in {\"ai.local\", \"automation.pro\", \"voice.local\"}:\n"
+        '        if self._judge_mode and feature in {"ai.local", "automation.pro", "voice.local"}:\n'
         "            return True\n"
         "        if self._entitlements is None:\n"
         "            return False\n"
@@ -175,7 +172,7 @@ def patch_judge_mode() -> None:
     )
     text = read(path)
     start = text.index("def start_desktop(\n")
-    end = text.index('    \"\"\"Start the lightweight native WebView', start)
+    end = text.index('    """Start the lightweight native WebView', start)
     signature = text[start:end]
     if "judge_mode: bool = False" not in signature:
         signature = signature.replace(
@@ -186,8 +183,7 @@ def patch_judge_mode() -> None:
         write(path, text)
     replace_once(
         path,
-        "        activation_state_store=activation_state_store,\n"
-        "    )\n",
+        "        activation_state_store=activation_state_store,\n    )\n",
         "        activation_state_store=activation_state_store,\n"
         "        judge_mode=judge_mode,\n"
         "    )\n",

@@ -105,7 +105,7 @@ def test_model_proposed_app_launch_requires_one_time_confirmation() -> None:
     assert pending is not None
     assert pending["confirmation_id"]
     assert pending["argument_digest"]
-    assert len(ledger.receipts) == 1
+    assert len(ledger.receipts) == 2
     assert ledger.receipts[0].event == "confirmation_requested"
     assert ledger.receipts[0].status == "pending"
 
@@ -114,7 +114,7 @@ def test_model_proposed_app_launch_requires_one_time_confirmation() -> None:
     assert confirmed.status is RuntimeStatus.COMPLETED
     assert effects.operations == [("open_app", "calculator")]
     assert "ryl-" in confirmed.message
-    assert len(ledger.receipts) == 2
+    assert len(ledger.receipts) == 3
     assert ledger.receipts[-1].skill_id == "application.launch"
     assert ledger.receipts[-1].confirmation_state == "approved"
 
@@ -169,10 +169,10 @@ def test_deterministic_registered_skill_executes_and_receipt_hides_query_values(
     assert result.status is RuntimeStatus.COMPLETED
     assert effects.operations[0][0] == "open_url"
     assert len(ledger.receipts) == 1
-    assert "secret-demo-query" not in repr(ledger.receipts[0])
-    assert ledger.receipts[0].action["query_keys"] == ["q"]
-    assert ledger.receipts[0].argument_keys == ("purpose", "url")
-    assert len(ledger.receipts[0].argument_digest) == 64
+    assert "secret-demo-query" not in repr(ledger.receipts)
+    assert ledger.receipts[-1].action["query_keys"] == ["q"]
+    assert ledger.receipts[-1].argument_keys == ("purpose", "url")
+    assert len(ledger.receipts[-1].argument_digest) == 64
 
 
 def test_receipts_form_a_verified_hash_chain_across_actions() -> None:
@@ -194,10 +194,13 @@ def test_receipts_form_a_verified_hash_chain_across_actions() -> None:
     runtime.handle("يا رايلونو كم الساعة")
     runtime.handle("يا رايلونو ارفع الصوت")
 
-    first, second = ledger.receipts
-    assert first.previous_hash == "0" * 64
-    assert second.previous_hash == first.receipt_hash
-    assert first.receipt_hash != second.receipt_hash
+    receipts = ledger.receipts
+    assert receipts[0].previous_hash == "0" * 64
+    assert all(
+        current.previous_hash == previous.receipt_hash
+        for previous, current in zip(receipts, receipts[1:], strict=False)
+    )
+    assert len({receipt.receipt_hash for receipt in receipts}) == len(receipts)
     assert ledger.verify_integrity()
 
 
@@ -224,6 +227,7 @@ def test_new_command_invalidates_stale_pending_confirmation() -> None:
     assert [receipt.status for receipt in ledger.receipts] == [
         "pending",
         "cancelled",
+        "authorized",
         "completed",
     ]
     assert any(record.event == "confirmation_replaced" for record in audit.records)

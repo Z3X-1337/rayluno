@@ -314,8 +314,8 @@ def main() -> None:
     )
     replace_once(
         path,
-        "_GENESIS_HASH = \"0\" * 64\n",
-        "_GENESIS_HASH = \"0\" * 64\n_ANCHOR_SCHEMA = \"rayluno.receipt-anchor/v1\"\n",
+        '_GENESIS_HASH = "0" * 64\n',
+        '_GENESIS_HASH = "0" * 64\n_ANCHOR_SCHEMA = "rayluno.receipt-anchor/v1"\n',
         marker="_ANCHOR_SCHEMA",
     )
     text = read(path)

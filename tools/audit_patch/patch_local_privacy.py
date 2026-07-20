@@ -37,11 +37,11 @@ def patch_audit() -> None:
     replace_once(
         path,
         "        if command is not None:\n"
-        "            command_hash = hashlib.sha256(command.encode(\"utf-8\")).hexdigest()\n",
+        '            command_hash = hashlib.sha256(command.encode("utf-8")).hexdigest()\n',
         "        if command is not None:\n"
         "            command_hash = keyed_digest(\n"
         "                self._fingerprint_key,\n"
-        "                {\"domain\": \"rayluno.audit.command/v1\", \"command\": command},\n"
+        '                {"domain": "rayluno.audit.command/v1", "command": command},\n'
         "            )\n",
         marker="rayluno.audit.command/v1",
     )
@@ -56,7 +56,7 @@ def patch_audit() -> None:
         "    def __init__(self, path: Path, clock: Callable[[], datetime] | None = None) -> None:\n"
         "        self.path = Path(path)\n"
         "        secure_directory(self.path.parent)\n"
-        "        key_path = self.path.with_name(f\"{self.path.name}.key\")\n"
+        '        key_path = self.path.with_name(f"{self.path.name}.key")\n'
         "        try:\n"
         "            fingerprint_key = load_or_create_key(key_path)\n"
         "        except (OSError, ValueError):\n"
@@ -69,12 +69,12 @@ def patch_audit() -> None:
         path,
         "        with self._lock:\n"
         "            self.path.parent.mkdir(parents=True, exist_ok=True)\n"
-        "            with self.path.open(\"a\", encoding=\"utf-8\") as stream:\n"
-        "                stream.write(f\"{line}\\n\")\n",
+        '            with self.path.open("a", encoding="utf-8") as stream:\n'
+        '                stream.write(f"{line}\\n")\n',
         "        with self._lock:\n"
         "            secure_directory(self.path.parent)\n"
-        "            with self.path.open(\"a\", encoding=\"utf-8\") as stream:\n"
-        "                stream.write(f\"{line}\\n\")\n"
+        '            with self.path.open("a", encoding="utf-8") as stream:\n'
+        '                stream.write(f"{line}\\n")\n'
         "                stream.flush()\n"
         "                os.fsync(stream.fileno())\n"
         "            secure_file(self.path)\n",
@@ -113,7 +113,7 @@ def patch_memory_secret_detection() -> None:
     path = "src/future_assistant/memory.py"
     text = read(path)
     if "_STRUCTURED_SECRET_PATTERNS" not in text:
-        insertion = '''
+        insertion = """
 _STRUCTURED_SECRET_PATTERNS = tuple(
     re.compile(pattern, re.IGNORECASE)
     for pattern in (
@@ -128,7 +128,7 @@ _STRUCTURED_SECRET_PATTERNS = tuple(
     )
 )
 _CARD_CANDIDATE = re.compile(r"(?<!\\d)(?:\\d[ -]?){13,19}(?!\\d)")
-'''
+"""
         anchor = ")\n\n\nclass MemoryCategory"
         if anchor not in text:
             raise RuntimeError("Could not locate memory pattern insertion point")

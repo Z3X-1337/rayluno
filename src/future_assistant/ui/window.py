@@ -70,6 +70,7 @@ class DesktopApi:
         activation_state_store: ActivationStateStore | None = None,
         purchase_page_opener: Callable[[str], bool] | None = None,
         ai_report_page_opener: Callable[[str], bool] | None = None,
+        judge_mode: bool = False,
     ) -> None:
         self.runtime = runtime
         self.assistant_name = assistant_name
@@ -82,6 +83,7 @@ class DesktopApi:
         self._activation_state_store = activation_state_store
         self._purchase_page_opener = purchase_page_opener or webbrowser.open_new_tab
         self._ai_report_page_opener = ai_report_page_opener or webbrowser.open_new_tab
+        self._judge_mode = bool(judge_mode)
         self._window: Any | None = None
         self._history: list[dict[str, object]] = []
         self._history_lock = Lock()
@@ -195,11 +197,14 @@ class DesktopApi:
             status = self._entitlements.status().to_public_dict()
         status["activation_configured"] = self._online_activation_available
         status["refresh_available"] = self._refresh_state_available
+        status["judge_mode"] = self._judge_mode
         return status
 
     def _has_feature(self, feature: str) -> bool:
         """Fail closed when a commercial capability cannot be verified."""
 
+        if self._judge_mode and feature in {"ai.local", "automation.pro", "voice.local"}:
+            return True
         if self._entitlements is None:
             return False
         try:
@@ -650,6 +655,7 @@ def start_desktop(
     voice_settings: VoiceSettings | None = None,
     entitlement_service: EntitlementService | None = None,
     debug: bool = False,
+    judge_mode: bool = False,
 ) -> None:
     """Start the lightweight native WebView window on the main thread."""
 
@@ -687,6 +693,7 @@ def start_desktop(
         activation_client=activation_client,
         installation_store=installation_store,
         activation_state_store=activation_state_store,
+        judge_mode=judge_mode,
     )
     controller = DesktopVoiceController(api, voice_settings or VoiceSettings.from_env())
     api.set_voice_controller(controller)

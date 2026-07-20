@@ -288,8 +288,7 @@ class VerifiedAssistantRuntime:
             detail=(
                 f"skill:{first.manifest.skill_id};"
                 f"permission:{first.manifest.permission};"
-                f"risk:{first.manifest.risk.value};"
-                f"confirmation:{pending.confirmation_id}"
+                f"risk:{first.manifest.risk.value}"
             ),
         )
         return RuntimeResult(
@@ -412,26 +411,50 @@ class VerifiedAssistantRuntime:
                 self._integrity_failure_message(language),
                 plan,
             )
+        confirmation_state = "approved" if confirmed else "not_required"
+        authorization_receipts: list[ExecutionReceipt] = []
+        try:
+            for assessment, action in zip(assessments, plan.actions, strict=True):
+                authorization_receipts.append(
+                    self.receipt_ledger.record(
+                        assessment,
+                        ExecutionResult(action, False, "execution_authorized"),
+                        event="execution_authorized",
+                        confirmation_state=confirmation_state,
+                        status_override="authorized",
+                    )
+                )
+        except ReceiptIntegrityError:
+            self.last_receipts = tuple(authorization_receipts)
+            return RuntimeResult(
+                RuntimeStatus.BLOCKED,
+                self._authorization_failure_message(language),
+                plan,
+            )
+
         executions = tuple(
             self.runtime.executor.execute(action, command, language) for action in plan.actions
         )
+        outcome_receipts: list[ExecutionReceipt] = []
         try:
-            self.last_receipts = tuple(
-                self.receipt_ledger.record(
-                    assessment,
-                    execution,
-                    event="execution",
-                    confirmation_state="approved" if confirmed else "not_required",
+            for assessment, execution in zip(assessments, executions, strict=True):
+                outcome_receipts.append(
+                    self.receipt_ledger.record(
+                        assessment,
+                        execution,
+                        event="execution",
+                        confirmation_state=confirmation_state,
+                    )
                 )
-                for assessment, execution in zip(assessments, executions, strict=True)
-            )
         except ReceiptIntegrityError:
+            self.last_receipts = tuple(authorization_receipts + outcome_receipts)
             return RuntimeResult(
                 RuntimeStatus.ERROR,
                 self._receipt_write_failure_message(language),
                 plan,
                 executions,
             )
+        self.last_receipts = tuple(authorization_receipts + outcome_receipts)
         successes = sum(result.ok for result in executions)
         blocked = sum(result.blocked for result in executions)
         if successes == len(executions):
@@ -583,6 +606,12 @@ class VerifiedAssistantRuntime:
         if language is Language.EN:
             return "Verified execution is paused because the receipt journal failed validation."
         return "أُوقف التنفيذ الموثق لأن سجل الإيصالات لم يجتز التحقق."
+
+    @staticmethod
+    def _authorization_failure_message(language: Language) -> str:
+        if language is Language.EN:
+            return "No action was executed because authorization proof could not be sealed."
+        return "لم يُنفّذ أي إجراء لأن تعذّر ختم إثبات التصريح بالتنفيذ."
 
     @staticmethod
     def _receipt_write_failure_message(language: Language) -> str:

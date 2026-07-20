@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
+import os
+import secrets
 import threading
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
@@ -13,6 +14,7 @@ from typing import Protocol
 from urllib.parse import parse_qsl, urlsplit
 
 from .domain import Action, ActionKind
+from .local_security import keyed_digest, load_or_create_key, secure_directory, secure_file
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,8 +59,14 @@ def summarize_action(action: Action) -> dict[str, object]:
 
 
 class _BaseAuditLogger:
-    def __init__(self, clock: Callable[[], datetime] | None = None) -> None:
+    def __init__(
+        self,
+        clock: Callable[[], datetime] | None = None,
+        *,
+        fingerprint_key: bytes | None = None,
+    ) -> None:
         self.clock = clock or (lambda: datetime.now(UTC))
+        self._fingerprint_key = fingerprint_key or secrets.token_bytes(32)
 
     def make_record(
         self,
@@ -69,7 +77,10 @@ class _BaseAuditLogger:
     ) -> AuditRecord:
         command_hash = None
         if command is not None:
-            command_hash = hashlib.sha256(command.encode("utf-8")).hexdigest()
+            command_hash = keyed_digest(
+                self._fingerprint_key,
+                {"domain": "rayluno.audit.command/v1", "command": command},
+            )
         return AuditRecord(
             timestamp=self.clock().astimezone(UTC).isoformat(),
             event=event,
@@ -109,8 +120,14 @@ class MemoryAuditLogger(_BaseAuditLogger):
 
 class JsonlAuditLogger(_BaseAuditLogger):
     def __init__(self, path: Path, clock: Callable[[], datetime] | None = None) -> None:
-        super().__init__(clock)
-        self.path = path
+        self.path = Path(path)
+        secure_directory(self.path.parent)
+        key_path = self.path.with_name(f"{self.path.name}.key")
+        try:
+            fingerprint_key = load_or_create_key(key_path)
+        except (OSError, ValueError):
+            fingerprint_key = secrets.token_bytes(32)
+        super().__init__(clock, fingerprint_key=fingerprint_key)
         self._lock = threading.Lock()
 
     def record(
@@ -124,6 +141,9 @@ class JsonlAuditLogger(_BaseAuditLogger):
         record = self.make_record(event, command, action, detail)
         line = json.dumps(asdict(record), ensure_ascii=False, separators=(",", ":"))
         with self._lock:
-            self.path.parent.mkdir(parents=True, exist_ok=True)
+            secure_directory(self.path.parent)
             with self.path.open("a", encoding="utf-8") as stream:
                 stream.write(f"{line}\n")
+                stream.flush()
+                os.fsync(stream.fileno())
+            secure_file(self.path)

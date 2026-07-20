@@ -35,6 +35,7 @@
       openInspector: "فتح تفاصيل سلسلة الإيصالات",
       requestPending: "بانتظار قرار المستخدم",
       succeeded: "مكتمل",
+      authorized: "مصرّح",
       blocked: "ممنوع",
       cancelled: "ملغي",
       pending: "معلّق",
@@ -80,6 +81,7 @@
       openInspector: "Open receipt-chain details",
       requestPending: "Waiting for the user's decision",
       succeeded: "Completed",
+      authorized: "Authorized",
       blocked: "Blocked",
       cancelled: "Cancelled",
       pending: "Pending",
@@ -487,6 +489,7 @@
   function statusLabel(status) {
     const key = {
       completed: "succeeded",
+      authorized: "authorized",
       blocked: "blocked",
       cancelled: "cancelled",
       pending: "pending",

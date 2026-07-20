@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Protocol
 
 from .identity import COMPATIBILITY_DATA_DIRECTORY
+from .local_security import secure_directory, secure_file
 
 _MAX_STATEMENT_LENGTH = 280
 _SOURCE_USER_EXPLICIT = "user_explicit"
@@ -44,6 +45,21 @@ _SENSITIVE_PATTERNS = tuple(
         r"عبارة\s+(?:الاسترداد|الاستعادة)",
     )
 )
+
+_STRUCTURED_SECRET_PATTERNS = tuple(
+    re.compile(pattern, re.IGNORECASE)
+    for pattern in (
+        r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
+        r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b",
+        r"\b(?:sk|rk)-[A-Za-z0-9_-]{16,}\b",
+        r"\bgh[pousr]_[A-Za-z0-9]{20,}\b",
+        r"\bgithub_pat_[A-Za-z0-9_]{20,}\b",
+        r"\bAKIA[0-9A-Z]{16}\b",
+        r"\bAIza[0-9A-Za-z_-]{30,}\b",
+        r"\bxox[baprs]-[0-9A-Za-z-]{20,}\b",
+    )
+)
+_CARD_CANDIDATE = re.compile(r"(?<!\d)(?:\d[ -]?){13,19}(?!\d)")
 
 
 class MemoryCategory(StrEnum):
@@ -129,8 +145,27 @@ def memory_fingerprint(statement: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
+def _luhn_valid(value: str) -> bool:
+    digits = [int(character) for character in value if character.isdigit()]
+    if not 13 <= len(digits) <= 19 or len(set(digits)) == 1:
+        return False
+    checksum = 0
+    parity = len(digits) % 2
+    for index, digit in enumerate(digits):
+        if index % 2 == parity:
+            digit *= 2
+            if digit > 9:
+                digit -= 9
+        checksum += digit
+    return checksum % 10 == 0
+
+
 def contains_sensitive_material(statement: str) -> bool:
-    return any(pattern.search(statement) for pattern in _SENSITIVE_PATTERNS)
+    if any(pattern.search(statement) for pattern in _SENSITIVE_PATTERNS):
+        return True
+    if any(pattern.search(statement) for pattern in _STRUCTURED_SECRET_PATTERNS):
+        return True
+    return any(_luhn_valid(match.group(0)) for match in _CARD_CANDIDATE.finditer(statement))
 
 
 class SQLiteMemoryStore:
@@ -142,8 +177,9 @@ class SQLiteMemoryStore:
         self._initialized = False
 
     def _connect(self) -> sqlite3.Connection:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        secure_directory(self.path.parent)
         connection = sqlite3.connect(self.path, timeout=5.0)
+        secure_file(self.path)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA busy_timeout = 5000")
         if not self._initialized:
