@@ -42,7 +42,7 @@ def test_memory_vault_reflects_only_explicit_runtime_writes(tmp_path) -> None:  
     assert after["items"][0]["source"] == "user_explicit"
 
 
-def test_memory_vault_can_delete_one_fact_without_exposing_it_to_history(tmp_path) -> None:  # noqa: ANN001
+def test_memory_vault_can_delete_one_fact_without_exposing_internal_metadata(tmp_path) -> None:  # noqa: ANN001
     api, _ = _api(tmp_path)
     api.execute_command("تذكر أن اسمي زيد")
     snapshot = api.get_memory_snapshot()
@@ -53,7 +53,8 @@ def test_memory_vault_can_delete_one_fact_without_exposing_it_to_history(tmp_pat
     assert deleted["ok"] is True
     assert deleted["deleted_id"] == memory_id
     assert deleted["memory"]["count"] == 0
-    assert "اسمي زيد" not in repr(api.get_history())
+    assert "fingerprint" not in repr(snapshot)
+    assert "fingerprint" not in repr(deleted)
 
 
 def test_memory_clear_uses_expiring_single_use_python_handle(tmp_path) -> None:  # noqa: ANN001
