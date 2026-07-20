@@ -13,6 +13,7 @@ from .identity import (
     environment_value,
 )
 from .localization import Language, normalize_language
+from .memory import default_memory_path
 from .reminders import default_reminders_path
 from .tasks import default_tasks_path
 
@@ -90,6 +91,7 @@ class AssistantConfig:
     )
     tasks_path: Path = field(default_factory=default_tasks_path)
     reminders_path: Path = field(default_factory=default_reminders_path)
+    memory_path: Path = field(default_factory=default_memory_path)
 
     @classmethod
     def from_env(cls) -> AssistantConfig:
@@ -116,6 +118,8 @@ class AssistantConfig:
         reminders_path = (
             Path(reminders_value).expanduser() if reminders_value else default_reminders_path()
         )
+        memory_value = environment_value("MEMORY_PATH", "").strip()
+        memory_path = Path(memory_value).expanduser() if memory_value else default_memory_path()
         return cls(
             assistant_name=(
                 environment_value("NAME", DEFAULT_ASSISTANT_NAME).strip()[:40]
@@ -129,4 +133,5 @@ class AssistantConfig:
             audit_path=audit_path,
             tasks_path=tasks_path,
             reminders_path=reminders_path,
+            memory_path=memory_path,
         )
