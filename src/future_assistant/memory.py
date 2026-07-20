@@ -168,7 +168,8 @@ class SQLiteMemoryStore:
             """
         )
         connection.execute(
-            "CREATE INDEX IF NOT EXISTS idx_memory_updated ON memory_facts(updated_at DESC, id DESC)"
+            "CREATE INDEX IF NOT EXISTS idx_memory_updated "
+            "ON memory_facts(updated_at DESC, id DESC)"
         )
         connection.commit()
         self._initialized = True
