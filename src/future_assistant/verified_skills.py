@@ -264,7 +264,11 @@ class HashChainedReceiptLedger:
     def verify_integrity(self, *, reload: bool = True) -> bool:
         with self._lock:
             try:
-                candidate = self._read_file() if reload and self.path is not None else self._receipts
+                candidate = (
+                    self._read_file()
+                    if reload and self.path is not None
+                    else self._receipts
+                )
             except (OSError, ValueError, json.JSONDecodeError, KeyError, TypeError) as exc:
                 self._mark_invalid(type(exc).__name__)
                 return False
@@ -322,7 +326,8 @@ class HashChainedReceiptLedger:
         for receipt in receipts:
             if receipt.schema != _RECEIPT_SCHEMA or receipt.previous_hash != previous_hash:
                 return False
-            if not secrets.compare_digest(receipt.receipt_hash, cls._seal(receipt.unsigned_payload())):
+            expected_hash = cls._seal(receipt.unsigned_payload())
+            if not secrets.compare_digest(receipt.receipt_hash, expected_hash):
                 return False
             previous_hash = receipt.receipt_hash
         return True
