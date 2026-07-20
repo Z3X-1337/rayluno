@@ -14,10 +14,6 @@ class ActionKind(StrEnum):
     OPEN_APP = "open_app"
     REPORT_TIME = "report_time"
     CONTROL_VOLUME = "control_volume"
-    CREATE_TASK = "create_task"
-    LIST_TASKS = "list_tasks"
-    COMPLETE_TASK = "complete_task"
-    DELETE_TASK = "delete_task"
 
 
 class VolumeOperation(StrEnum):
