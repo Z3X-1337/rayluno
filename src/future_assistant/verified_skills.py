@@ -27,7 +27,6 @@ from .local_security import (
 _RECEIPT_SCHEMA = "rayluno.execution-receipt/v2"
 _GENESIS_HASH = "0" * 64
 _ANCHOR_SCHEMA = "rayluno.receipt-anchor/v1"
-_ANCHOR_SCHEMA = "rayluno.receipt-anchor/v1"
 
 
 class SkillRisk(StrEnum):
@@ -223,6 +222,8 @@ class ReceiptSink(Protocol):
 
     def verify_integrity(self, *, reload: bool = True) -> bool: ...
 
+    def fingerprint_arguments(self, arguments: Mapping[str, object]) -> str: ...
+
     def record(
         self,
         assessment: SkillAssessment,
@@ -294,7 +295,18 @@ class HashChainedReceiptLedger:
 
     @property
     def authenticated_checkpoint(self) -> bool:
-        return self.path is not None and self._anchor_path is not None
+        return bool(
+            self.path is not None
+            and self._anchor_path is not None
+            and self._anchor_path.exists()
+            and self.integrity_ok
+        )
+
+    def fingerprint_arguments(self, arguments: Mapping[str, object]) -> str:
+        return keyed_digest(
+            self._integrity_key,
+            {"domain": "rayluno.receipt.arguments/v1", "arguments": dict(arguments)},
+        )
 
     def verify_integrity(self, *, reload: bool = True) -> bool:
         with self._lock:
@@ -358,10 +370,7 @@ class HashChainedReceiptLedger:
                 "policy_reason": assessment.reason,
                 "action": summarize_action(result.action),
                 "argument_keys": sorted(str(key) for key in arguments),
-                "argument_digest": keyed_digest(
-                    self._integrity_key,
-                    {"domain": "rayluno.receipt.arguments/v1", "arguments": arguments},
-                ),
+                "argument_digest": self.fingerprint_arguments(arguments),
                 "previous_hash": self.chain_head,
             }
             receipt_hash = self._seal(payload)

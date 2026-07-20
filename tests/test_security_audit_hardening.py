@@ -141,6 +141,14 @@ def test_confirmation_handle_never_enters_audit_records() -> None:
     pending = runtime.pending_public()
 
     assert pending is not None
+    plain = hashlib.sha256(
+        json.dumps(
+            {"0:app_id": "calculator"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+    assert pending["argument_digest"] != plain
     assert str(pending["confirmation_id"]) not in repr(audit.records)
 
 

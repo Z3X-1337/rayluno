@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 import secrets
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -491,7 +489,7 @@ class VerifiedAssistantRuntime:
             created_at=created_at,
             expires_at=created_at + timedelta(seconds=self.confirmation_ttl_seconds),
             argument_keys=tuple(sorted(arguments)),
-            argument_digest=self._digest(arguments),
+            argument_digest=self.receipt_ledger.fingerprint_arguments(arguments),
         )
 
     def _record_without_effect(
@@ -529,18 +527,6 @@ class VerifiedAssistantRuntime:
         if value.tzinfo is None:
             value = value.replace(tzinfo=UTC)
         return value.astimezone(UTC)
-
-    @staticmethod
-    def _digest(value: Mapping[str, object]) -> str:
-        canonical = json.dumps(
-            value,
-            ensure_ascii=False,
-            allow_nan=False,
-            sort_keys=True,
-            separators=(",", ":"),
-            default=str,
-        )
-        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     @staticmethod
     def _confirmation_matches(expected: str, received: str) -> bool:
@@ -606,12 +592,6 @@ class VerifiedAssistantRuntime:
         if language is Language.EN:
             return "Verified execution is paused because the receipt journal failed validation."
         return "أُوقف التنفيذ الموثق لأن سجل الإيصالات لم يجتز التحقق."
-
-    @staticmethod
-    def _authorization_failure_message(language: Language) -> str:
-        if language is Language.EN:
-            return "No action was executed because authorization proof could not be sealed."
-        return "لم يُنفّذ أي إجراء لأن تعذّر ختم إثبات التصريح بالتنفيذ."
 
     @staticmethod
     def _authorization_failure_message(language: Language) -> str:

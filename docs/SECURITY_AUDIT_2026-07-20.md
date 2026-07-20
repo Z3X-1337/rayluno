@@ -21,4 +21,4 @@ The remediation branch is accepted only after the complete Windows/Ubuntu and Py
 
 ## Honest boundary
 
-The authenticated local checkpoint is not a hardware-backed signature or a remote transparency log. Deleting every local trust-state file cannot be distinguished from a clean installation without a hardware or remote witness. Rayluno states this limitation rather than claiming impossible local-only guarantees.
+The authenticated local checkpoint is not a hardware-backed signature or a remote transparency log. A process running as the same operating-system user that can read the local HMAC key can forge local state. Deleting every local trust-state file cannot be distinguished from a clean installation without a hardware or remote witness. Rayluno states this limitation rather than claiming impossible local-only guarantees.
