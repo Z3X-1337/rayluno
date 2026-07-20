@@ -118,9 +118,7 @@ def _clean_statement(value: object) -> str:
         raise ValueError("Memory statement must be text.")
     statement = " ".join(value.strip().split())
     if not statement or len(statement) > _MAX_STATEMENT_LENGTH:
-        raise ValueError(
-            f"Memory statement must contain 1-{_MAX_STATEMENT_LENGTH} characters."
-        )
+        raise ValueError(f"Memory statement must contain 1-{_MAX_STATEMENT_LENGTH} characters.")
     if any(ord(character) < 32 for character in statement):
         raise ValueError("Memory statement cannot contain control characters.")
     return statement
