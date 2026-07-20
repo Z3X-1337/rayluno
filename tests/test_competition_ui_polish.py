@@ -67,9 +67,9 @@ def test_competition_javascript_uses_safe_dom_construction_and_live_events() -> 
 def test_competition_css_has_semantic_states_and_reduced_motion() -> None:
     stylesheet = _asset("competition-polish.css")
 
-    assert '.proof-step.is-active' in stylesheet
-    assert '.proof-step.is-complete' in stylesheet
-    assert '.proof-step.is-blocked' in stylesheet
+    assert ".proof-step.is-active" in stylesheet
+    assert ".proof-step.is-complete" in stylesheet
+    assert ".proof-step.is-blocked" in stylesheet
     assert 'body[data-proof-state="complete"]' in stylesheet
     assert 'body[data-proof-state="blocked"]' in stylesheet
     assert "prefers-reduced-motion" in stylesheet
