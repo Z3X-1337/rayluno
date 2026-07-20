@@ -179,7 +179,10 @@ class MemoryCommandPlanner:
             return (
                 "لا أتذكر عنك شيئًا بعد. لن أحفظ أي معلومة إلا عندما تطلب ذلك صراحة."
                 if language is Language.AR
-                else "I don't remember anything about you yet. I only save facts when you explicitly ask."
+                else (
+                    "I don't remember anything about you yet. "
+                    "I only save facts when you explicitly ask."
+                )
             )
         category_labels = {
             Language.AR: {
