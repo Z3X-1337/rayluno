@@ -106,8 +106,11 @@ def test_user_rule_can_deny_or_allow_registered_noncritical_skill() -> None:
         ),
     )
 
-    assert deny.evaluate(manifest, PlanSource.DETERMINISTIC, now=_now()).decision is PermissionDecision.DENY
-    assert allow.evaluate(manifest, PlanSource.OLLAMA, now=_now()).decision is PermissionDecision.ALLOW
+    denied = deny.evaluate(manifest, PlanSource.DETERMINISTIC, now=_now())
+    allowed = allow.evaluate(manifest, PlanSource.OLLAMA, now=_now())
+
+    assert denied.decision is PermissionDecision.DENY
+    assert allowed.decision is PermissionDecision.ALLOW
 
 
 def test_critical_allow_override_is_downgraded_to_elevation() -> None:
@@ -127,11 +130,12 @@ def test_critical_allow_override_is_downgraded_to_elevation() -> None:
     assert result.decision is PermissionDecision.ELEVATE
 
 
-def test_scoped_elevation_allows_only_matching_permission_until_expiry() -> None:
+def test_scoped_elevation_requires_confirmation_for_critical_skill() -> None:
     now = _now()
     session = ElevatedSession(
         session_id="elev-1",
         permission_prefixes=frozenset({"system.settings"}),
+        allowed_skill_ids=frozenset({"test.skill"}),
         created_at=now,
         expires_at=now + timedelta(minutes=5),
     )
@@ -156,7 +160,8 @@ def test_scoped_elevation_allows_only_matching_permission_until_expiry() -> None
         now=now + timedelta(minutes=6),
     )
 
-    assert matching.decision is PermissionDecision.ALLOW
+    assert matching.decision is PermissionDecision.CONFIRM
+    assert matching.elevation_satisfied is True
     assert outside_scope.decision is PermissionDecision.ELEVATE
     assert expired.decision is PermissionDecision.ELEVATE
 
@@ -168,6 +173,7 @@ def test_elevation_cannot_last_longer_than_fifteen_minutes() -> None:
         ElevatedSession(
             session_id="too-long",
             permission_prefixes=frozenset({"system"}),
+            allowed_skill_ids=frozenset({"test.skill"}),
             created_at=now,
             expires_at=now + timedelta(minutes=16),
         )
