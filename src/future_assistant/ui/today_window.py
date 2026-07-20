@@ -57,14 +57,19 @@ def _manifest_public(manifest: Any) -> dict[str, object]:
 
 def _receipt_public(receipt: Any) -> dict[str, object]:
     return {
+        "schema": str(receipt.schema),
         "receipt_id": str(receipt.receipt_id),
         "timestamp": str(receipt.timestamp),
+        "event": str(receipt.event),
         "skill_id": str(receipt.skill_id),
         "permission": str(receipt.permission),
         "risk": str(receipt.risk),
         "status": str(receipt.status),
+        "confirmation_state": str(receipt.confirmation_state),
         "policy_reason": str(receipt.policy_reason),
         "action": dict(receipt.action),
+        "argument_keys": list(receipt.argument_keys),
+        "argument_digest": str(receipt.argument_digest),
         "previous_hash": str(receipt.previous_hash),
         "receipt_hash": str(receipt.receipt_hash),
     }
@@ -186,33 +191,61 @@ class TodayDesktopApi(legacy.DesktopApi):
         try:
             engine = self.runtime.skill_engine
             manifests = engine.registry.manifests
-            pending = self.runtime.pending
+            pending = self.runtime.pending_public()
             ledger = self.runtime.receipt_ledger
             receipts = tuple(getattr(ledger, "receipts", ()))
-            pending_manifest = None
-            if pending is not None:
-                assessment = next(
-                    (item for item in pending.assessments if item.requires_confirmation),
-                    pending.assessments[0],
-                )
-                pending_manifest = _manifest_public(assessment.manifest)
+            integrity_ok = bool(self.runtime.receipt_integrity_ok)
             return {
-                "available": True,
+                "available": integrity_ok,
+                "integrity_ok": integrity_ok,
+                "integrity_error": getattr(ledger, "integrity_error", None),
                 "skills": [_manifest_public(manifest) for manifest in manifests],
-                "pending": pending_manifest,
+                "pending": pending,
                 "receipts": [_receipt_public(receipt) for receipt in reversed(receipts[-5:])],
+                "receipt_count": len(receipts),
                 "chain_head": receipts[-1].receipt_hash if receipts else None,
                 "privacy": "local",
             }
-        except Exception:
+        except Exception as exc:
             return {
                 "available": False,
+                "integrity_ok": False,
+                "integrity_error": type(exc).__name__,
                 "skills": [],
                 "pending": None,
                 "receipts": [],
+                "receipt_count": 0,
                 "chain_head": None,
                 "privacy": "local",
             }
+
+    def get_verified_receipts(self, limit: object = 20) -> dict[str, object]:
+        try:
+            parsed_limit = max(1, min(int(limit), 100))
+        except (TypeError, ValueError):
+            parsed_limit = 20
+        snapshot = self.get_verified_snapshot()
+        try:
+            receipts = tuple(getattr(self.runtime.receipt_ledger, "receipts", ()))
+            public_receipts = [
+                _receipt_public(receipt) for receipt in reversed(receipts[-parsed_limit:])
+            ]
+        except Exception:
+            public_receipts = []
+        return {
+            "ok": bool(snapshot["integrity_ok"]),
+            "integrity_ok": bool(snapshot["integrity_ok"]),
+            "integrity_error": snapshot.get("integrity_error"),
+            "receipts": public_receipts,
+            "receipt_count": snapshot.get("receipt_count", 0),
+            "chain_head": snapshot.get("chain_head"),
+        }
+
+    def approve_skill(self, confirmation_id: object) -> dict[str, object]:
+        return self._resolve_confirmation(confirmation_id, approve=True)
+
+    def reject_skill(self, confirmation_id: object) -> dict[str, object]:
+        return self._resolve_confirmation(confirmation_id, approve=False)
 
     def poll_due_reminders(self) -> dict[str, object]:
         try:
@@ -220,21 +253,51 @@ class TodayDesktopApi(legacy.DesktopApi):
         except Exception:
             return {"ok": False, "events": []}
 
+    def _resolve_confirmation(
+        self,
+        confirmation_id: object,
+        *,
+        approve: bool,
+    ) -> dict[str, object]:
+        if not isinstance(confirmation_id, str) or not confirmation_id.strip():
+            return {
+                "ok": False,
+                "status": RuntimeStatus.BLOCKED.value,
+                "message": "معرّف التأكيد غير صالح.",
+                "action": "blocked",
+                "verified": True,
+            }
+        with self._execution_lock:
+            result = (
+                self.runtime.approve(confirmation_id.strip())
+                if approve
+                else self.runtime.reject(confirmation_id.strip())
+            )
+        payload = self._result_payload(result, "")
+        with self._history_lock:
+            self._history.insert(0, payload)
+            del self._history[20:]
+        self.emit(
+            {
+                "verified_resolution": payload,
+                "verified_status": self.get_verified_snapshot(),
+            }
+        )
+        return dict(payload)
+
     def _result_payload(self, result: RuntimeResult, command: str) -> dict[str, object]:
         payload = super()._result_payload(result, command)
+        payload["verified"] = True
+        payload["integrity_ok"] = bool(self.runtime.receipt_integrity_ok)
         if result.status is RuntimeStatus.CONFIRMATION_REQUIRED:
             payload["ok"] = True
-            pending = getattr(self.runtime, "pending", None)
+            pending = self.runtime.pending_public()
             if pending is not None:
-                assessment = next(
-                    (item for item in pending.assessments if item.requires_confirmation),
-                    pending.assessments[0],
-                )
-                payload["confirmation"] = _manifest_public(assessment.manifest)
-        if result.executions:
-            receipts = getattr(self.runtime, "last_receipts", ())
-            if receipts:
-                payload["receipt"] = _receipt_public(receipts[-1])
+                payload["confirmation"] = pending
+        receipts = tuple(getattr(self.runtime, "last_receipts", ()))
+        if receipts:
+            payload["receipt"] = _receipt_public(receipts[-1])
+            payload["receipts"] = [_receipt_public(receipt) for receipt in receipts]
         return payload
 
 
