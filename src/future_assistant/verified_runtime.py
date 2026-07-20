@@ -62,7 +62,7 @@ class PendingExecution:
 
 
 class VerifiedAssistantRuntime:
-    """Adds expiring confirmation handles and verifiable receipts to AssistantRuntime."""
+    """Apply expiring confirmation handles and verifiable receipts to a runtime."""
 
     def __init__(
         self,
@@ -73,7 +73,7 @@ class VerifiedAssistantRuntime:
         clock: Callable[[], datetime] | None = None,
         confirmation_ttl_seconds: int = 45,
     ) -> None:
-        if confirmation_ttl_seconds < 1 or confirmation_ttl_seconds > 300:
+        if not 1 <= confirmation_ttl_seconds <= 300:
             raise ValueError("confirmation_ttl_seconds must be between 1 and 300.")
         self.runtime = runtime
         self.skill_engine = skill_engine or VerifiedSkillEngine()
@@ -103,15 +103,6 @@ class VerifiedAssistantRuntime:
         if self._now() >= pending.expires_at:
             self._expire_pending(pending)
             return None
-        skills = [
-            {
-                "skill_id": item.manifest.skill_id,
-                "permission": item.manifest.permission,
-                "risk": item.manifest.risk.value,
-                "confirmation": item.manifest.confirmation.value,
-            }
-            for item in pending.assessments
-        ]
         primary = next(
             (item for item in pending.assessments if item.requires_confirmation),
             pending.assessments[0],
@@ -125,7 +116,15 @@ class VerifiedAssistantRuntime:
             "risk": primary.manifest.risk.value,
             "argument_keys": list(pending.argument_keys),
             "argument_digest": pending.argument_digest,
-            "skills": skills,
+            "skills": [
+                {
+                    "skill_id": item.manifest.skill_id,
+                    "permission": item.manifest.permission,
+                    "risk": item.manifest.risk.value,
+                    "confirmation": item.manifest.confirmation.value,
+                }
+                for item in pending.assessments
+            ],
         }
 
     def approve(self, confirmation_id: str) -> RuntimeResult:
@@ -134,9 +133,10 @@ class VerifiedAssistantRuntime:
 
     def reject(self, confirmation_id: str) -> RuntimeResult:
         self.last_receipts = ()
-        language = self.pending.language if self.pending is not None else resolve_language(
-            self.runtime.config.language
-        )
+        if self.pending is not None:
+            language = self.pending.language
+        else:
+            language = resolve_language(self.runtime.config.language)
         return self._cancel(language, confirmation_id)
 
     def handle(self, text: str) -> RuntimeResult:
@@ -149,12 +149,9 @@ class VerifiedAssistantRuntime:
                 localize(MessageKey.EMPTY_INPUT, language),
             )
 
-        command = text
-        if self.runtime.config.require_wake_word:
-            extracted = self.runtime.wake_words.extract(text)
-            if extracted is None:
-                return RuntimeResult(RuntimeStatus.SLEEPING)
-            command = extracted
+        command = self._extract_command(text)
+        if command is None:
+            return RuntimeResult(RuntimeStatus.SLEEPING)
         if not command:
             self.runtime.audit.record("wake_word_detected", command=text)
             return RuntimeResult(RuntimeStatus.AWAKE, localize(MessageKey.AWAKE, language))
@@ -165,34 +162,11 @@ class VerifiedAssistantRuntime:
         if normalized in _CANCEL:
             return self._cancel(language)
 
-        if self.pending is not None:
-            previous = self.pending
-            self.pending = None
-            self._record_without_effect(
-                previous,
-                event="confirmation_replaced",
-                confirmation_state="replaced",
-                status="cancelled",
-            )
-            self.runtime.audit.record(
-                "confirmation_replaced",
-                command=previous.command,
-                action=previous.plan.actions[0],
-            )
-
+        self._replace_pending_if_needed()
         self.runtime.audit.record("command_received", command=command)
-        try:
-            plan = self.runtime.planner.plan(command)
-        except Exception as exc:
-            self.runtime.audit.record(
-                "planning_failed",
-                command=command,
-                detail=type(exc).__name__,
-            )
-            return RuntimeResult(
-                RuntimeStatus.ERROR,
-                localize(MessageKey.UNDERSTANDING_ERROR, language),
-            )
+        plan = self._plan(command, language)
+        if isinstance(plan, RuntimeResult):
+            return plan
         if plan is None:
             self.runtime.audit.record("command_unhandled", command=command)
             return RuntimeResult(
@@ -203,6 +177,58 @@ class VerifiedAssistantRuntime:
             message = plan.reply or localize(MessageKey.UNHANDLED, language)
             return RuntimeResult(RuntimeStatus.COMPLETED, message, plan)
 
+        assessments = self._assess(plan, command, language)
+        if isinstance(assessments, RuntimeResult):
+            return assessments
+        if not self.receipt_integrity_ok:
+            return self._integrity_block(command, language, plan)
+
+        if any(item.requires_confirmation for item in assessments):
+            return self._request_confirmation(command, language, plan, assessments)
+        return self._execute(command, language, plan, assessments, confirmed=False)
+
+    def _extract_command(self, text: str) -> str | None:
+        if not self.runtime.config.require_wake_word:
+            return text
+        return self.runtime.wake_words.extract(text)
+
+    def _replace_pending_if_needed(self) -> None:
+        previous = self.pending
+        if previous is None:
+            return
+        self.pending = None
+        self._record_without_effect(
+            previous,
+            event="confirmation_replaced",
+            confirmation_state="replaced",
+            status="cancelled",
+        )
+        self.runtime.audit.record(
+            "confirmation_replaced",
+            command=previous.command,
+            action=previous.plan.actions[0],
+        )
+
+    def _plan(self, command: str, language: Language) -> Plan | RuntimeResult | None:
+        try:
+            return self.runtime.planner.plan(command)
+        except Exception as exc:
+            self.runtime.audit.record(
+                "planning_failed",
+                command=command,
+                detail=type(exc).__name__,
+            )
+            return RuntimeResult(
+                RuntimeStatus.ERROR,
+                localize(MessageKey.UNDERSTANDING_ERROR, language),
+            )
+
+    def _assess(
+        self,
+        plan: Plan,
+        command: str,
+        language: Language,
+    ) -> tuple[SkillAssessment, ...] | RuntimeResult:
         assessments: list[SkillAssessment] = []
         for action in plan.actions:
             assessment = self.skill_engine.assess(action, plan.source)
@@ -219,49 +245,58 @@ class VerifiedAssistantRuntime:
                     plan,
                 )
             assessments.append(assessment)
+        return tuple(assessments)
 
-        if not self.receipt_integrity_ok:
-            self.runtime.audit.record(
-                "verified_execution_blocked",
-                command=command,
-                action=plan.actions[0],
-                detail="receipt_integrity_failed",
-            )
-            return RuntimeResult(
-                RuntimeStatus.BLOCKED,
-                self._integrity_failure_message(language),
-                plan,
-            )
+    def _integrity_block(
+        self,
+        command: str,
+        language: Language,
+        plan: Plan,
+    ) -> RuntimeResult:
+        self.runtime.audit.record(
+            "verified_execution_blocked",
+            command=command,
+            action=plan.actions[0],
+            detail="receipt_integrity_failed",
+        )
+        return RuntimeResult(
+            RuntimeStatus.BLOCKED,
+            self._integrity_failure_message(language),
+            plan,
+        )
 
-        assessment_tuple = tuple(assessments)
-        if any(item.requires_confirmation for item in assessment_tuple):
-            pending = self._new_pending(command, language, plan, assessment_tuple)
-            self.pending = pending
-            self.last_receipts = self._record_without_effect(
-                pending,
-                event="confirmation_requested",
-                confirmation_state="pending",
-                status="pending",
-            )
-            first = next(item for item in assessment_tuple if item.requires_confirmation)
-            self.runtime.audit.record(
-                "confirmation_requested",
-                command=command,
-                action=plan.actions[0],
-                detail=(
-                    f"skill:{first.manifest.skill_id};"
-                    f"permission:{first.manifest.permission};"
-                    f"risk:{first.manifest.risk.value};"
-                    f"confirmation:{pending.confirmation_id}"
-                ),
-            )
-            return RuntimeResult(
-                RuntimeStatus.CONFIRMATION_REQUIRED,
-                self._confirmation_message(first, language, self.confirmation_ttl_seconds),
-                plan,
-            )
-
-        return self._execute(command, language, plan, assessment_tuple, confirmed=False)
+    def _request_confirmation(
+        self,
+        command: str,
+        language: Language,
+        plan: Plan,
+        assessments: tuple[SkillAssessment, ...],
+    ) -> RuntimeResult:
+        pending = self._new_pending(command, language, plan, assessments)
+        self.pending = pending
+        self.last_receipts = self._record_without_effect(
+            pending,
+            event="confirmation_requested",
+            confirmation_state="pending",
+            status="pending",
+        )
+        first = next(item for item in assessments if item.requires_confirmation)
+        self.runtime.audit.record(
+            "confirmation_requested",
+            command=command,
+            action=plan.actions[0],
+            detail=(
+                f"skill:{first.manifest.skill_id};"
+                f"permission:{first.manifest.permission};"
+                f"risk:{first.manifest.risk.value};"
+                f"confirmation:{pending.confirmation_id}"
+            ),
+        )
+        return RuntimeResult(
+            RuntimeStatus.CONFIRMATION_REQUIRED,
+            self._confirmation_message(first, language, self.confirmation_ttl_seconds),
+            plan,
+        )
 
     def _confirm(self, confirmation_id: str | None = None) -> RuntimeResult:
         pending = self.pending
@@ -271,7 +306,8 @@ class VerifiedAssistantRuntime:
         if self._now() >= pending.expires_at:
             return self._expire_pending(pending)
         if confirmation_id is not None and not self._confirmation_matches(
-            pending.confirmation_id, confirmation_id
+            pending.confirmation_id,
+            confirmation_id,
         ):
             self.runtime.audit.record(
                 "confirmation_invalid",
@@ -315,7 +351,8 @@ class VerifiedAssistantRuntime:
         if self._now() >= pending.expires_at:
             return self._expire_pending(pending)
         if confirmation_id is not None and not self._confirmation_matches(
-            pending.confirmation_id, confirmation_id
+            pending.confirmation_id,
+            confirmation_id,
         ):
             return RuntimeResult(
                 RuntimeStatus.BLOCKED,
