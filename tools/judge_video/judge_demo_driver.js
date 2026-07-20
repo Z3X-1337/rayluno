@@ -31,6 +31,11 @@
     await waitFor("#memory-v2-trigger");
     await waitFor("#verified-v2-trigger");
     document.querySelector('[data-language="en"]')?.click();
+
+    const disclosure = document.createElement("span");
+    disclosure.className = "privacy-badge";
+    disclosure.innerHTML = '<i aria-hidden="true"></i><span>Production UI · deterministic Judge Capture</span>';
+    document.querySelector(".topbar-actions")?.prepend(disclosure);
     await sleep(2_200);
 
     await typeCommand("Remember that I prefer concise, technical answers");
