@@ -32,6 +32,12 @@ jobs:
       - name: Compile source
         run: python -m compileall -q src
 
+      - name: Check UI JavaScript syntax
+        run: >-
+          python -c "import pathlib, subprocess;
+          [subprocess.run(['node', '--check', str(path)], check=True)
+          for path in sorted(pathlib.Path('src/future_assistant/ui').glob('*.js'))]"
+
       - name: Run tests
         run: python -m pytest --junitxml=pytest-results.xml
 
