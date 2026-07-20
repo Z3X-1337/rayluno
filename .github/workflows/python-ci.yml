@@ -33,7 +33,16 @@ jobs:
         run: python -m compileall -q src
 
       - name: Run tests
-        run: python -m pytest
+        run: python -m pytest --junitxml=pytest-results.xml
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-${{ matrix.os }}-${{ matrix.python-version }}
+          path: pytest-results.xml
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Lint
         run: python -m ruff check .
