@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Protocol
 
 from .identity import COMPATIBILITY_DATA_DIRECTORY
+from .local_security import secure_directory, secure_file
 
 _MAX_TITLE_LENGTH = 240
 
@@ -104,8 +105,9 @@ class SQLiteTaskStore:
         self._initialized = False
 
     def _connect(self) -> sqlite3.Connection:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        secure_directory(self.path.parent)
         connection = sqlite3.connect(self.path, timeout=5.0)
+        secure_file(self.path)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA busy_timeout = 5000")

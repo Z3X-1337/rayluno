@@ -87,7 +87,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     except LicensingError:
         entitlements = None
 
+    judge_features = frozenset({"ai.local", "automation.pro", "voice.local"})
+
     def has_feature(feature: str) -> bool:
+        if args.judge_demo and feature in judge_features:
+            return True
         return bool(entitlements and entitlements.has_feature(feature))
 
     if args.voice and not has_feature("voice.local"):
@@ -146,6 +150,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 voice_settings=voice_settings,
                 entitlement_service=entitlements,
                 debug=args.debug_ui,
+                judge_mode=args.judge_demo,
             )
         except RuntimeError as exc:
             print(str(exc), file=sys.stderr)

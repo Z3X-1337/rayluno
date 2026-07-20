@@ -61,7 +61,7 @@ def test_desktop_exposes_one_time_confirmation_and_receipts_without_raw_command(
     assert confirmed["receipt"]["confirmation_state"] == "approved"
     assert verified["pending"] is None
     assert verified["integrity_ok"] is True
-    assert verified["receipt_count"] == 2
+    assert verified["receipt_count"] == 3
     assert verified["receipts"][0]["skill_id"] == "application.launch"
     assert verified["receipts"][0]["event"] == "execution"
     assert verified["chain_head"] == verified["receipts"][0]["receipt_hash"]
