@@ -1,0 +1,184 @@
+.rayluno-trust-center {
+  display: grid;
+  gap: 11px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid rgba(109, 141, 255, 0.2);
+  border-radius: 15px;
+  background:
+    linear-gradient(135deg, rgba(109, 141, 255, 0.065), rgba(100, 234, 220, 0.035)),
+    rgba(255, 255, 255, 0.012);
+}
+
+.rayluno-trust-center.unavailable {
+  border-color: rgba(255, 112, 137, 0.28);
+}
+
+.rayluno-trust-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rayluno-trust-heading > span:first-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rayluno-trust-heading small {
+  color: #6d8dff;
+  font-size: 8px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.rayluno-trust-heading b {
+  color: #efffff;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.rayluno-trust-score {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 194, 92, 0.2);
+  border-radius: 999px;
+  color: #ffd890;
+  background: rgba(255, 194, 92, 0.055);
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rayluno-trust-score.complete {
+  border-color: rgba(100, 234, 220, 0.25);
+  color: #adfff4;
+  background: rgba(100, 234, 220, 0.065);
+  box-shadow: 0 0 22px rgba(100, 234, 220, 0.06);
+}
+
+.rayluno-trust-meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #82999f;
+  font-size: 8px;
+}
+
+.rayluno-trust-meta span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.028);
+}
+
+#rayluno-trust-judge {
+  color: #d9dfff;
+  background: rgba(109, 141, 255, 0.09);
+}
+
+.rayluno-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.rayluno-trust-card {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 25px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.rayluno-trust-card > i {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(100, 234, 220, 0.18);
+  border-radius: 8px;
+  color: #64eadc;
+  background: rgba(100, 234, 220, 0.045);
+  font-size: 7px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.rayluno-trust-card > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rayluno-trust-card b {
+  overflow: hidden;
+  color: #eaffff;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rayluno-trust-card small {
+  color: #80979d;
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+.rayluno-trust-card em {
+  align-self: center;
+  color: #70eadc;
+  font-size: 7px;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
+.rayluno-trust-card.inactive {
+  border-color: rgba(255, 112, 137, 0.16);
+  background: rgba(255, 112, 137, 0.025);
+}
+
+.rayluno-trust-card.inactive > i,
+.rayluno-trust-card.inactive em {
+  color: #ff8ba0;
+  border-color: rgba(255, 112, 137, 0.2);
+  background: rgba(255, 112, 137, 0.045);
+}
+
+.rayluno-trust-boundary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 10px;
+  border-inline-start: 2px solid rgba(255, 194, 92, 0.4);
+  border-radius: 5px;
+  background: rgba(255, 194, 92, 0.025);
+}
+
+.rayluno-trust-boundary b {
+  color: #ffd890;
+  font-size: 8px;
+}
+
+.rayluno-trust-boundary small {
+  color: #899da2;
+  font-size: 7px;
+  line-height: 1.55;
+}
+
+@media (max-width: 620px) {
+  .rayluno-trust-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rayluno-trust-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
