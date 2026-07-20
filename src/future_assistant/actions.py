@@ -95,44 +95,6 @@ class ActionFactory:
             return None
         return Action(ActionKind.OPEN_APP, {"app_id": app_id})
 
-    def create_task(
-        self,
-        title: str,
-        *,
-        priority: str = "normal",
-        due: str | None = None,
-    ) -> Action | None:
-        cleaned = self._clean_query(title)
-        if cleaned is None or priority not in {"low", "normal", "high"}:
-            return None
-        if due not in {None, "none", "today", "tomorrow"} and not (
-            isinstance(due, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", due)
-        ):
-            return None
-        return Action(
-            ActionKind.CREATE_TASK,
-            {"title": cleaned, "priority": priority, "due": due or "none"},
-        )
-
-    @staticmethod
-    def list_tasks(*, include_completed: bool = False, limit: int = 10) -> Action:
-        return Action(
-            ActionKind.LIST_TASKS,
-            {"include_completed": include_completed, "limit": limit},
-        )
-
-    @staticmethod
-    def complete_task(task_id: int) -> Action | None:
-        if isinstance(task_id, bool) or not isinstance(task_id, int) or task_id < 1:
-            return None
-        return Action(ActionKind.COMPLETE_TASK, {"task_id": task_id})
-
-    @staticmethod
-    def delete_task(task_id: int) -> Action | None:
-        if isinstance(task_id, bool) or not isinstance(task_id, int) or task_id < 1:
-            return None
-        return Action(ActionKind.DELETE_TASK, {"task_id": task_id})
-
     @staticmethod
     def report_time() -> Action:
         return Action(ActionKind.REPORT_TIME)
