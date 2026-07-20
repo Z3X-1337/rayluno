@@ -167,7 +167,9 @@ class SQLiteTaskStore:
                     due_date.isoformat() if due_date else None,
                 ),
             )
-            row = connection.execute("SELECT * FROM tasks WHERE id = ?", (cursor.lastrowid,)).fetchone()
+            row = connection.execute(
+                "SELECT * FROM tasks WHERE id = ?", (cursor.lastrowid,)
+            ).fetchone()
             connection.commit()
         if row is None:
             raise RuntimeError("Created task could not be read back.")
@@ -187,7 +189,7 @@ class SQLiteTaskStore:
                     due_date ASC,
                     id ASC
                 LIMIT ?
-                """,
+                """,  # noqa: S608 - clause is selected from two fixed literals above
                 (bounded_limit,),
             ).fetchall()
         return tuple(self._task(row) for row in rows)
