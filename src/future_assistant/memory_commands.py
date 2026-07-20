@@ -42,7 +42,7 @@ class MemoryCommandPlanner:
             fact = self.service.forget(memory_id)
             return self._reply(self._forgot_message(fact, language))
 
-        statement = self._match_remember_statement(normalized)
+        statement = self._match_remember_statement(normalized, original)
         if statement is None:
             return None
         category = self._category(statement)
@@ -78,17 +78,34 @@ class MemoryCommandPlanner:
         return None
 
     @staticmethod
-    def _match_remember_statement(normalized: str) -> str | None:
-        patterns = (
+    def _match_remember_statement(normalized: str, original: str) -> str | None:
+        normalized_patterns = (
             r"^(?:تذكر|تذكّر|احفظ|سجل في ذاكرتك|سجل بذاكرتك|خلي ببالك)(?: ان| أن)?\s+(.+)$",
             r"^(?:remember|save)(?: that)?\s+(.+)$",
             r"^keep in mind(?: that)?\s+(.+)$",
         )
-        for pattern in patterns:
+        fallback = None
+        for pattern in normalized_patterns:
             match = re.match(pattern, normalized)
             if match:
-                return match.group(1).strip()
-        return None
+                fallback = match.group(1).strip()
+                break
+        if fallback is None:
+            return None
+
+        original_patterns = (
+            (
+                r"^\s*(?:تذكر|تذكّر|احفظ|سجل في ذاكرتك|سجل بذاكرتك|خلي ببالك)"
+                r"(?:\s+(?:ان|أن))?\s+(.+?)\s*$"
+            ),
+            r"^\s*(?:remember|save)(?:\s+that)?\s+(.+?)\s*$",
+            r"^\s*keep in mind(?:\s+that)?\s+(.+?)\s*$",
+        )
+        for pattern in original_patterns:
+            match = re.match(pattern, original, flags=re.IGNORECASE)
+            if match:
+                return match.group(1).strip(" \t\r\n،,.!؟?")
+        return fallback
 
     @staticmethod
     def _category(statement: str) -> MemoryCategory:
@@ -190,9 +207,11 @@ class MemoryCommandPlanner:
     @staticmethod
     def _sensitive_refusal(language: Language) -> str:
         return (
-            "لن أحفظ كلمات المرور أو رموز الدخول أو مفاتيح API أو بيانات الدفع. استخدم مدير كلمات مرور موثوقًا لهذه المعلومات."
+            "لن أحفظ كلمات المرور أو رموز الدخول أو مفاتيح API أو بيانات الدفع. "
+            "استخدم مدير كلمات مرور موثوقًا لهذه المعلومات."
             if language is Language.AR
-            else "I won't store passwords, access tokens, API keys, or payment details. Use a trusted password manager for secrets."
+            else "I won't store passwords, access tokens, API keys, or payment details. "
+            "Use a trusted password manager for secrets."
         )
 
     @staticmethod
