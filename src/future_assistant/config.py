@@ -13,6 +13,7 @@ from .identity import (
     environment_value,
 )
 from .localization import Language, normalize_language
+from .reminders import default_reminders_path
 from .tasks import default_tasks_path
 
 
@@ -88,6 +89,7 @@ class AssistantConfig:
         default_factory=lambda: Path.home() / ".future_assistant" / "audit.jsonl"
     )
     tasks_path: Path = field(default_factory=default_tasks_path)
+    reminders_path: Path = field(default_factory=default_reminders_path)
 
     @classmethod
     def from_env(cls) -> AssistantConfig:
@@ -110,6 +112,10 @@ class AssistantConfig:
             audit_path = None
         tasks_value = environment_value("TASKS_PATH", "").strip()
         tasks_path = Path(tasks_value).expanduser() if tasks_value else default_tasks_path()
+        reminders_value = environment_value("REMINDERS_PATH", "").strip()
+        reminders_path = (
+            Path(reminders_value).expanduser() if reminders_value else default_reminders_path()
+        )
         return cls(
             assistant_name=(
                 environment_value("NAME", DEFAULT_ASSISTANT_NAME).strip()[:40]
@@ -122,4 +128,5 @@ class AssistantConfig:
             ollama_model=environment_value("OLLAMA_MODEL", "qwen3.5:4b"),
             audit_path=audit_path,
             tasks_path=tasks_path,
+            reminders_path=reminders_path,
         )
