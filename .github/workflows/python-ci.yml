@@ -45,25 +45,7 @@ jobs:
           retention-days: 7
 
       - name: Lint
-        run: python -m ruff check . --output-format=concise > ruff-lint.txt
-
-      - name: Upload lint diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ruff-lint-${{ matrix.os }}-${{ matrix.python-version }}
-          path: ruff-lint.txt
-          if-no-files-found: warn
-          retention-days: 7
+        run: python -m ruff check .
 
       - name: Check formatting
-        run: python -m ruff format --check . --diff > ruff-format.diff
-
-      - name: Upload formatting diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ruff-format-${{ matrix.os }}-${{ matrix.python-version }}
-          path: ruff-format.diff
-          if-no-files-found: warn
-          retention-days: 7
+        run: python -m ruff format --check .
