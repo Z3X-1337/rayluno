@@ -253,6 +253,14 @@
     document.body.append(script);
   }
 
+  function loadMemoryInterface() {
+    if (document.querySelector('script[data-rayluno-memory="true"]')) return;
+    const script = document.createElement("script");
+    script.src = "memory.js";
+    script.dataset.raylunoMemory = "true";
+    document.body.append(script);
+  }
+
   if (typeof applySnapshot === "function") {
     const baseApplySnapshot = applySnapshot;
     applySnapshot = function applySnapshotWithToday(snapshot = {}) {
@@ -293,4 +301,5 @@
   applyText();
   renderToday();
   loadVerifiedInterface();
+  loadMemoryInterface();
 })();

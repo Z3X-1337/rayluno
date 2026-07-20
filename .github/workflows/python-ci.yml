@@ -37,6 +37,7 @@ jobs:
           node --check src/future_assistant/ui/app.js
           node --check src/future_assistant/ui/today.js
           node --check src/future_assistant/ui/verified.js
+          node --check src/future_assistant/ui/memory.js
 
       - name: Run tests
         run: python -m pytest --junitxml=pytest-results.xml
