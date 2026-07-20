@@ -18,7 +18,6 @@ from future_assistant.memory_commands import MemoryCommandPlanner
 from future_assistant.router import DeterministicRouter
 from future_assistant.runtime import DryRunEffects, build_runtime
 
-
 FIXED_NOW = datetime(2026, 7, 20, 12, 0, tzinfo=UTC)
 
 
