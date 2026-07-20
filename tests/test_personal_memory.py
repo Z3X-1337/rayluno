@@ -11,8 +11,8 @@ from future_assistant.memory import (
     InMemoryMemoryStore,
     MemoryCategory,
     MemoryService,
-    SQLiteMemoryStore,
     SensitiveMemoryError,
+    SQLiteMemoryStore,
 )
 from future_assistant.memory_commands import MemoryCommandPlanner
 from future_assistant.router import DeterministicRouter
