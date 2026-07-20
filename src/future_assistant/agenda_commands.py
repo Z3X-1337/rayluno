@@ -123,7 +123,8 @@ class AgendaCommandPlanner:
 
     def _match_snooze(self, normalized: str) -> tuple[int, int] | None:
         patterns = (
-            r"^(?:اجل|أجل|غفوه)(?: التذكير)?\s+(?:رقم\s+)?(\d+)\s+(.+?)(?:\s+دقائق?|\s+دقيقه)?$",
+            r"^(?:اجل|أجل|غفوه)(?: التذكير)?\s+(?:رقم\s+)?(\d+)\s+(.+?)"
+            r"(?:\s+دقائق?|\s+دقيقه)?$",
             r"^snooze(?: reminder)?\s+(\d+)\s+(?:for\s+)?(.+?)(?:\s+minutes?)?$",
         )
         for pattern in patterns:
@@ -153,7 +154,10 @@ class AgendaCommandPlanner:
             return "after", minutes, title, priority
 
         absolute_patterns = (
-            r"^ذكرني(?: اليوم| بكرا| غدا)?\s+(?:الساعه|الساعة)\s+(\d{1,2})(?::(\d{2}))?\s*(صباحا|صباح|مساء|مساءا)?\s+(.+)$",
+            (
+                r"^ذكرني(?: اليوم| بكرا| غدا)?\s+(?:الساعه|الساعة)\s+"
+                r"(\d{1,2})(?::(\d{2}))?\s*(صباحا|صباح|مساء|مساءا)?\s+(.+)$"
+            ),
             r"^remind me at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s+to\s+(.+)$",
         )
         for pattern in absolute_patterns:
