@@ -53,6 +53,16 @@ def summarize_action(action: Action) -> dict[str, object]:
     elif action.kind is ActionKind.CONTROL_VOLUME:
         summary["operation"] = str(action.parameters.get("operation", ""))
         summary["steps"] = action.parameters.get("steps", 0)
+    elif action.kind is ActionKind.CREATE_TASK:
+        summary["priority"] = str(action.parameters.get("priority", ""))
+        summary["due"] = str(action.parameters.get("due", "none"))
+    elif action.kind is ActionKind.LIST_TASKS:
+        summary["include_completed"] = bool(
+            action.parameters.get("include_completed", False)
+        )
+        summary["limit"] = action.parameters.get("limit", 0)
+    elif action.kind in {ActionKind.COMPLETE_TASK, ActionKind.DELETE_TASK}:
+        summary["task_id"] = action.parameters.get("task_id", 0)
     return summary
 
 
