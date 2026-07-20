@@ -1,0 +1,55 @@
+name: Render Judge Demo Video
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["agent/judge-video-render"]
+    paths:
+      - "tools/judge_video/**"
+      - "src/future_assistant/ui/**"
+      - ".github/workflows/render-judge-video.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    name: Render silent MP4 capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install capture dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Render production-UI judge capture
+        run: |
+          python tools/judge_video/render_judge_demo.py \
+            --output artifacts/rayluno-judge-demo-raw.mp4
+
+      - name: Inspect video metadata
+        run: |
+          ffprobe -v error \
+            -show_entries format=duration,size:stream=codec_name,width,height,pix_fmt \
+            -of default=noprint_wrappers=1 \
+            artifacts/rayluno-judge-demo-raw.mp4
+
+      - name: Upload raw video
+        uses: actions/upload-artifact@v4
+        with:
+          name: rayluno-judge-demo-raw
+          path: artifacts/rayluno-judge-demo-raw.mp4
+          if-no-files-found: error
+          retention-days: 14
