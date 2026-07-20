@@ -7,24 +7,31 @@ from pathlib import Path
 UI_DIR = Path(__file__).parents[1] / "src" / "future_assistant" / "ui"
 HTML = (UI_DIR / "index.html").read_text(encoding="utf-8")
 JAVASCRIPT = (UI_DIR / "app.js").read_text(encoding="utf-8")
+TODAY_JAVASCRIPT = (UI_DIR / "today.js").read_text(encoding="utf-8")
 CSS = (UI_DIR / "styles.css").read_text(encoding="utf-8")
 
 
 def _catalogs() -> dict[str, dict[str, str]]:
     pattern = re.compile(
-        r"^  (?P<language>ar|en): Object\.freeze\(\{\n"
+        r"^\s+(?P<language>ar|en): Object\.freeze\(\{\n"
         r"(?P<body>.*?)"
-        r"^  \}\),$",
+        r"^\s+\}\),$",
         re.MULTILINE | re.DOTALL,
     )
-    entry_pattern = re.compile(r'^    (?P<key>[A-Za-z]\w*): "(?P<value>.*)",$', re.MULTILINE)
-    return {
-        match.group("language"): {
-            entry.group("key"): entry.group("value")
-            for entry in entry_pattern.finditer(match.group("body"))
-        }
-        for match in pattern.finditer(JAVASCRIPT)
-    }
+    entry_pattern = re.compile(
+        r'^\s+(?P<key>[A-Za-z]\w*): "(?P<value>.*)",$',
+        re.MULTILINE,
+    )
+    catalogs: dict[str, dict[str, str]] = {"ar": {}, "en": {}}
+    for source in (JAVASCRIPT, TODAY_JAVASCRIPT):
+        for match in pattern.finditer(source):
+            catalogs[match.group("language")].update(
+                {
+                    entry.group("key"): entry.group("value")
+                    for entry in entry_pattern.finditer(match.group("body"))
+                }
+            )
+    return catalogs
 
 
 class _VisibleTextAudit(HTMLParser):
@@ -143,6 +150,15 @@ def test_language_preference_is_persisted_and_updates_document_direction() -> No
 def test_quick_action_commands_follow_the_active_interface_language() -> None:
     assert "button.dataset.command = t(button.dataset.commandKey)" in JAVASCRIPT
     assert 'submitCommand(button.dataset.command || "")' in JAVASCRIPT
+
+
+def test_today_extension_owns_personal_commands_and_refreshes_local_data() -> None:
+    assert 'id="quick-agenda"' in HTML
+    assert 'id="quick-reminder"' in HTML
+    assert "get_personal_snapshot" in TODAY_JAVASCRIPT
+    assert "poll_due_reminders" in TODAY_JAVASCRIPT
+    assert "submitCommandWithToday" in TODAY_JAVASCRIPT
+    assert "assistantlanguagechange" in TODAY_JAVASCRIPT
 
 
 def test_styles_mirror_direction_and_preserve_keyboard_and_motion_accessibility() -> None:
