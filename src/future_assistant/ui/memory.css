@@ -1,0 +1,330 @@
+.memory-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(165, 135, 255, 0.22);
+  border-radius: 999px;
+  color: #eee9ff;
+  background: rgba(27, 21, 51, 0.72);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.memory-trigger:hover {
+  border-color: rgba(165, 135, 255, 0.46);
+  background: rgba(40, 30, 73, 0.88);
+  transform: translateY(-1px);
+}
+
+.memory-trigger:focus-visible,
+.memory-dialog button:focus-visible {
+  outline: 2px solid rgba(179, 151, 255, 0.96);
+  outline-offset: 3px;
+}
+
+.memory-trigger-icon {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 7px;
+  color: #c6b2ff;
+  background: rgba(164, 128, 255, 0.14);
+  font-size: 0.72rem;
+}
+
+.memory-trigger-count {
+  min-width: 19px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #d9ccff;
+  background: rgba(168, 139, 255, 0.13);
+  font-size: 0.63rem;
+  text-align: center;
+}
+
+.memory-trigger.unavailable {
+  color: #a7a1b4;
+  border-color: rgba(162, 153, 179, 0.15);
+  background: rgba(35, 31, 43, 0.6);
+}
+
+.memory-dialog {
+  width: min(680px, calc(100vw - 32px));
+  max-height: min(780px, calc(100vh - 32px));
+  padding: 0;
+  overflow: hidden;
+  color: #f5f1ff;
+  border: 1px solid rgba(181, 157, 255, 0.18);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(127, 87, 232, 0.16), transparent 35%),
+    linear-gradient(155deg, rgba(18, 16, 31, 0.99), rgba(8, 10, 19, 0.99));
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.58);
+}
+
+.memory-dialog::backdrop {
+  background: rgba(2, 4, 10, 0.76);
+  backdrop-filter: blur(12px);
+}
+
+.memory-dialog-shell {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+}
+
+.memory-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid rgba(185, 164, 247, 0.1);
+}
+
+.memory-dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.memory-vault-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(185, 154, 255, 0.25);
+  border-radius: 14px;
+  color: #cab6ff;
+  background: rgba(139, 98, 235, 0.12);
+  font-size: 1rem;
+  box-shadow: inset 0 0 20px rgba(160, 121, 250, 0.05);
+}
+
+.memory-dialog-title span {
+  display: grid;
+  gap: 3px;
+}
+
+.memory-dialog-title small,
+.memory-section-label {
+  color: #9087a9;
+  font-size: 0.69rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.memory-dialog-title b {
+  font-size: 1rem;
+}
+
+.memory-close {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: #aea7bd;
+  background: rgba(255, 255, 255, 0.05);
+  font: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.memory-dialog-body {
+  display: grid;
+  gap: 16px;
+  padding: 22px 24px 24px;
+  overflow-y: auto;
+}
+
+.memory-consent-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 16px;
+  border: 1px solid rgba(169, 137, 255, 0.18);
+  border-radius: 16px;
+  background: rgba(117, 77, 214, 0.08);
+}
+
+.memory-consent-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 10px;
+  color: #cebaff;
+  background: rgba(150, 111, 241, 0.14);
+}
+
+.memory-consent-copy {
+  display: grid;
+  gap: 5px;
+}
+
+.memory-consent-copy b {
+  color: #d9cbff;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+}
+
+.memory-consent-copy small {
+  color: #a29aaf;
+  line-height: 1.65;
+}
+
+.memory-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.memory-list-count {
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #bca9ef;
+  background: rgba(146, 110, 229, 0.1);
+  font-size: 0.68rem;
+}
+
+.memory-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.memory-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid rgba(180, 161, 228, 0.09);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.memory-item-id {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  border-radius: 10px;
+  color: #c8b4fa;
+  background: rgba(142, 107, 224, 0.11);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.memory-item-copy {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.memory-item-copy b {
+  overflow-wrap: anywhere;
+  color: #f0ebff;
+  font-size: 0.84rem;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.memory-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.memory-category,
+.memory-source {
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 0.61rem;
+}
+
+.memory-category {
+  color: #d0c1f5;
+  background: rgba(150, 119, 226, 0.1);
+}
+
+.memory-source {
+  color: #9adfcf;
+  background: rgba(73, 187, 162, 0.09);
+}
+
+.memory-delete {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid rgba(255, 125, 142, 0.12);
+  border-radius: 10px;
+  color: #d89aa5;
+  background: rgba(133, 40, 58, 0.08);
+  font: inherit;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.memory-delete:hover {
+  color: #ffc0ca;
+  border-color: rgba(255, 125, 142, 0.28);
+  background: rgba(151, 48, 67, 0.15);
+}
+
+.memory-delete:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.memory-empty {
+  padding: 34px 18px;
+  border: 1px dashed rgba(179, 158, 227, 0.12);
+  border-radius: 15px;
+  color: #8e879c;
+  text-align: center;
+  line-height: 1.7;
+}
+
+.memory-unavailable-note {
+  color: #e4a9b1;
+}
+
+@media (max-width: 720px) {
+  .memory-trigger-label {
+    display: none;
+  }
+
+  .memory-trigger {
+    width: 36px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .memory-trigger-count {
+    display: none;
+  }
+
+  .memory-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .memory-delete {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
