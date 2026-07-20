@@ -403,7 +403,11 @@ class VerifiedRuntimeBridge:
         status = outcome.receipt.status
         succeeded = status == "succeeded"
         if succeeded:
-            key = MessageKey.OPENED_APP if action.kind is ActionKind.OPEN_APP else MessageKey.OPENED_SEARCH
+            key = (
+                MessageKey.OPENED_APP
+                if action.kind is ActionKind.OPEN_APP
+                else MessageKey.OPENED_SEARCH
+            )
             message = localize(key, language)
             runtime_status = RuntimeStatus.COMPLETED.value
         elif status == "blocked":
