@@ -31,6 +31,7 @@ class RuntimeStatus(StrEnum):
     SLEEPING = "sleeping"
     AWAKE = "awake"
     UNHANDLED = "unhandled"
+    CONFIRMATION_REQUIRED = "confirmation_required"
     COMPLETED = "completed"
     PARTIAL = "partial"
     BLOCKED = "blocked"
