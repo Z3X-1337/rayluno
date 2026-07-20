@@ -109,7 +109,7 @@ def _demo_plan(*, workflow_id: str = "workflow-demo-001") -> WorkflowPlan:
                 request_id="request-search-one",
             ),
             _step(
-                "workspace.notepad",
+                "workspace.notes",
                 "Open the approved notes application",
                 "app.launch",
                 {"app_id": "notepad"},
