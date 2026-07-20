@@ -70,6 +70,7 @@ class VerifiedAssistantRuntime:
         return getattr(self.runtime, name)
 
     def handle(self, text: str) -> RuntimeResult:
+        self.last_receipts = ()
         text = text.strip()
         language = resolve_language(self.runtime.config.language, text=text)
         if not text:
@@ -194,7 +195,11 @@ class VerifiedAssistantRuntime:
             command=pending.command,
             action=pending.plan.actions[0],
         )
-        return RuntimeResult(RuntimeStatus.COMPLETED, self._cancelled_message(language), pending.plan)
+        return RuntimeResult(
+            RuntimeStatus.COMPLETED,
+            self._cancelled_message(language),
+            pending.plan,
+        )
 
     def _execute(
         self,
