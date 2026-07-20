@@ -8,6 +8,7 @@ import pytest
 from future_assistant.actions import ActionFactory
 from future_assistant.audit import MemoryAuditLogger
 from future_assistant.config import AssistantConfig
+from future_assistant.domain import RuntimeStatus
 from future_assistant.memory import (
     InMemoryMemoryStore,
     MemoryCategory,
@@ -145,7 +146,7 @@ def test_runtime_memory_lifecycle_keeps_raw_statement_out_of_audit(tmp_path: Pat
     listed = runtime.handle("ماذا تتذكر عني")
     deleted = runtime.handle("احذف الذاكرة رقم 1")
 
-    assert saved.ok and "الذاكرة رقم 1" in saved.message
-    assert listed.ok and statement in listed.message
-    assert deleted.ok and "حذفت الذاكرة رقم 1" in deleted.message
+    assert saved.status is RuntimeStatus.COMPLETED and "الذاكرة رقم 1" in saved.message
+    assert listed.status is RuntimeStatus.COMPLETED and statement in listed.message
+    assert deleted.status is RuntimeStatus.COMPLETED and "حذفت الذاكرة رقم 1" in deleted.message
     assert statement not in repr(audit.records)
