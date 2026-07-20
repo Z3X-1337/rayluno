@@ -139,7 +139,9 @@ def test_sqlite_task_store_persists_and_enforces_single_completion(tmp_path) -> 
 
 
 def test_runtime_supports_full_private_task_lifecycle(config: AssistantConfig) -> None:
-    clock = lambda: datetime(2026, 7, 20, 8, 0, tzinfo=UTC)
+    def clock() -> datetime:
+        return datetime(2026, 7, 20, 8, 0, tzinfo=UTC)
+
     audit = MemoryAuditLogger()
     runtime = build_runtime(
         config,
@@ -161,6 +163,7 @@ def test_runtime_supports_full_private_task_lifecycle(config: AssistantConfig) -
     assert completed.message == "أنجزت المهمة رقم 1: تجهيز فيديو الحكام."
     assert empty.message == "لا توجد مهام في هذه القائمة."
     assert "✓ 1) تجهيز فيديو الحكام" in history.message
+
     assert "تجهيز فيديو الحكام" not in repr(audit.records)
 
 
