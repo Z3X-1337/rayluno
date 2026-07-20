@@ -80,7 +80,9 @@ def _build_safe_voice_loop(
             )
         )
     wake_detector = (
-        detectors[0] if len(detectors) == 1 else CompositeWakeWordDetector(tuple(detectors))
+        detectors[0]
+        if len(detectors) == 1
+        else CompositeWakeWordDetector(tuple(detectors))
     )
     return VoiceLoop(
         stream_factory=lambda: MicrophoneStream(device=settings.microphone_device),
