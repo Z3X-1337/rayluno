@@ -145,8 +145,7 @@ class TaskCommandPlanner:
             priority_label = "أولوية" if language is Language.AR else "priority"
             state = "✓" if task.completed_at is not None else "○"
             entries.append(
-                f"{state} {task.id}) {task.title} "
-                f"({priority_label} {labels[task.priority]}{due})"
+                f"{state} {task.id}) {task.title} ({priority_label} {labels[task.priority]}{due})"
             )
         if language is Language.AR:
             heading = f"لديك {len(tasks)} مهام: "
