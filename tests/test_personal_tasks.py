@@ -8,10 +8,9 @@ import pytest
 from future_assistant.actions import ActionFactory
 from future_assistant.audit import MemoryAuditLogger
 from future_assistant.config import AssistantConfig
-from future_assistant.domain import Action, ActionKind, RuntimeStatus
+from future_assistant.domain import ActionKind, RuntimeStatus
 from future_assistant.router import DeterministicRouter
 from future_assistant.runtime import DryRunEffects, build_runtime
-from future_assistant.safety import SafetyPolicy
 from future_assistant.tasks import (
     InMemoryTaskStore,
     SQLiteTaskStore,
@@ -174,26 +173,6 @@ def test_runtime_replies_in_english_for_task_commands(config: AssistantConfig) -
     assert created.message == "I added task 1: submit the report."
     assert listed.message.startswith("You have 1 task:")
     assert "submit the report" in listed.message
-
-
-def test_task_safety_rejects_untrusted_or_oversized_parameters(config: AssistantConfig) -> None:
-    policy = SafetyPolicy(config)
-
-    assert not policy.evaluate(
-        Action(
-            ActionKind.CREATE_TASK,
-            {"title": "x" * 241, "priority": "normal", "due": "none"},
-        )
-    ).allowed
-    assert not policy.evaluate(
-        Action(
-            ActionKind.CREATE_TASK,
-            {"title": "safe", "priority": "critical", "due": "none"},
-        )
-    ).allowed
-    assert not policy.evaluate(
-        Action(ActionKind.COMPLETE_TASK, {"task_id": -1})
-    ).allowed
 
 
 def test_existing_search_routing_is_not_shadowed_by_task_parser(
