@@ -1,7 +1,14 @@
 """Desktop user interface for the assistant."""
 
-from .verified_window import DesktopVoiceController, VerifiedDesktopApi, start_desktop
+from .memory_window import MemoryDesktopApi, start_desktop
+from .verified_window import DesktopVoiceController, VerifiedDesktopApi
 
-DesktopApi = VerifiedDesktopApi
+DesktopApi = MemoryDesktopApi
 
-__all__ = ["DesktopApi", "DesktopVoiceController", "VerifiedDesktopApi", "start_desktop"]
+__all__ = [
+    "DesktopApi",
+    "DesktopVoiceController",
+    "MemoryDesktopApi",
+    "VerifiedDesktopApi",
+    "start_desktop",
+]
