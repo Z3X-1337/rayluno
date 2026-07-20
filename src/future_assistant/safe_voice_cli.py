@@ -8,6 +8,7 @@ from contextlib import suppress
 from dataclasses import replace
 from pathlib import Path
 from threading import Event, Lock
+from typing import Any
 
 from . import cli
 from .localization import Language
@@ -30,6 +31,26 @@ from .voice.tts import WindowsOneCoreSpeaker
 from .voice.vosk_transcription import VoskTranscriber
 
 _ORIGINAL_BUILD_VOICE_LOOP = desktop_window.build_voice_loop
+_ORIGINAL_BIND_WINDOW = desktop_window.DesktopApi.bind_window
+_COMPETITION_UI_BOOTSTRAP = """
+(() => {
+  const head = document.head;
+  if (!head) return;
+  if (!document.querySelector('link[data-rayluno-competition-polish]')) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'competition-polish.css';
+    link.dataset.raylunoCompetitionPolish = 'true';
+    head.append(link);
+  }
+  if (!document.querySelector('script[data-rayluno-competition-polish]')) {
+    const script = document.createElement('script');
+    script.src = 'competition-polish.js';
+    script.dataset.raylunoCompetitionPolish = 'true';
+    head.append(script);
+  }
+})();
+"""
 
 
 class PushToTalkVoiceLoop:
@@ -167,12 +188,28 @@ def _build_safe_voice_loop(
     )
 
 
+def _bind_window_with_competition_ui(api: Any, window: Any) -> None:
+    """Attach the reversible competition presentation layer after WebView loads."""
+
+    _ORIGINAL_BIND_WINDOW(api, window)
+
+    def inject_polish(*_args: object) -> None:
+        with suppress(Exception):
+            window.evaluate_js(_COMPETITION_UI_BOOTSTRAP)
+
+    loaded_event = getattr(getattr(window, "events", None), "loaded", None)
+    if loaded_event is not None:
+        loaded_event += inject_polish
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     desktop_window.build_voice_loop = _build_safe_voice_loop
+    desktop_window.DesktopApi.bind_window = _bind_window_with_competition_ui
     try:
         return cli.main(argv)
     finally:
         desktop_window.build_voice_loop = _ORIGINAL_BUILD_VOICE_LOOP
+        desktop_window.DesktopApi.bind_window = _ORIGINAL_BIND_WINDOW
 
 
 if __name__ == "__main__":
