@@ -179,9 +179,7 @@ def _build_safe_voice_loop(
 
     return PushToTalkVoiceLoop(
         stream_factory=lambda: MicrophoneStream(device=settings.microphone_device),
-        recorder=UtteranceRecorder(
-            UtteranceRecorderConfig(rms_threshold=settings.rms_threshold)
-        ),
+        recorder=UtteranceRecorder(UtteranceRecorderConfig(rms_threshold=settings.rms_threshold)),
         transcriber=transcriber,
         on_command=on_command,
         speaker=speaker,
