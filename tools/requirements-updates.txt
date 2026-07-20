@@ -1,0 +1,2 @@
+# Keep aligned with the product's licensing/update crypto extra.
+cryptography>=46,<50

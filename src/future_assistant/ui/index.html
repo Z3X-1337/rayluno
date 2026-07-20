@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-language-preference="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title data-i18n="documentTitle">Rayluno — مساعدك الشخصي</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-a" aria-hidden="true"></div>
+    <div class="ambient ambient-b" aria-hidden="true"></div>
+
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <i></i><i></i><i></i>
+          </span>
+          <span>
+            <b id="assistant-name" data-i18n="assistantName">رايلونو</b>
+            <small data-i18n="brandSubtitle">مساعد ذكي محلي بالعربية والإنجليزية</small>
+          </span>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="privacy-badge">
+            <i aria-hidden="true"></i>
+            <span data-i18n="privacyBadge">محلي وخاص</span>
+          </span>
+
+          <div
+            class="language-switch"
+            role="group"
+            data-i18n-aria-label="languagePickerLabel"
+            aria-label="لغة الواجهة"
+          >
+            <button
+              class="language-button"
+              type="button"
+              data-language="ar"
+              data-i18n="languageArabicShort"
+              data-i18n-aria-label="languageArabicLabel"
+              data-i18n-title="languageArabicLabel"
+              aria-label="العربية"
+              aria-pressed="false"
+              title="العربية"
+            >AR</button>
+            <button
+              class="language-button"
+              type="button"
+              data-language="auto"
+              data-i18n="languageAutoShort"
+              data-i18n-aria-label="languageAutoLabel"
+              data-i18n-title="languageAutoHint"
+              aria-label="تلقائي"
+              aria-pressed="true"
+              title="اتّباع لغة النظام"
+            >تلقائي</button>
+            <button
+              class="language-button"
+              type="button"
+              data-language="en"
+              data-i18n="languageEnglishShort"
+              data-i18n-aria-label="languageEnglishLabel"
+              data-i18n-title="languageEnglishLabel"
+              aria-label="الإنجليزية"
+              aria-pressed="false"
+              title="الإنجليزية"
+            >EN</button>
+          </div>
+
+          <button
+            class="icon-button"
+            id="settings-button"
+            type="button"
+            data-i18n-aria-label="settingsLabel"
+            data-i18n-title="settingsLabel"
+            aria-label="الإعدادات"
+            title="الإعدادات"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Zm8.3-2.3 1.4 1.1-2 3.5-1.7-.7a8 8 0 0 1-2.2 1.3l-.3 1.9h-4l-.3-1.9A8 8 0 0 1 9 17.1l-1.7.7-2-3.5 1.4-1.1a8 8 0 0 1 0-2.5L5.3 9.6l2-3.5 1.7.7a8 8 0 0 1 2.2-1.3l.3-1.9h4l.3 1.9A8 8 0 0 1 18 6.8l1.7-.7 2 3.5-1.4 1.1a8 8 0 0 1 0 2.5Z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <aside
+          class="panel activity-panel"
+          data-i18n-aria-label="recentActivityLabel"
+          aria-label="آخر النشاطات"
+        >
+          <div class="panel-heading">
+            <span>
+              <small data-i18n="historyEyebrow">السجل</small>
+              <b data-i18n="recentActivityTitle">آخر النشاطات</b>
+            </span>
+            <button class="text-button" id="clear-history" type="button" data-i18n="clearHistory">مسح</button>
+          </div>
+          <ol class="activity-list" id="activity-list" aria-live="polite">
+            <li class="empty-activity">
+              <span class="activity-icon" aria-hidden="true">✦</span>
+              <span>
+                <b data-i18n="emptyHistoryTitle">لا توجد أوامر بعد</b>
+                <small data-i18n="emptyHistoryDescription">ستظهر العمليات الآمنة هنا</small>
+              </span>
+            </li>
+          </ol>
+          <div class="device-state">
+            <span class="signal" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span>
+              <b data-i18n="localEngineTitle">المحرك المحلي</b>
+              <small id="engine-state" data-i18n="engineChecking">جارٍ التحقق…</small>
+            </span>
+          </div>
+        </aside>
+
+        <section
+          class="assistant-stage"
+          data-i18n-aria-label="assistantControlsLabel"
+          aria-label="التحكم بالمساعد"
+        >
+          <div class="eyebrow"><span></span><b id="mode-label" data-i18n="modeIdle">وضع الاستعداد</b><span></span></div>
+
+          <button
+            class="orb"
+            id="voice-button"
+            type="button"
+            data-i18n-aria-label="startListeningLabel"
+            aria-label="بدء الاستماع"
+            aria-pressed="false"
+          >
+            <span class="orbit orbit-outer" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="orbit orbit-mid" aria-hidden="true"><i></i><i></i></span>
+            <span class="pulse pulse-one" aria-hidden="true"></span>
+            <span class="pulse pulse-two" aria-hidden="true"></span>
+            <span class="core">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21H8v2h8v-2h-3v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+              <span id="orb-label" data-i18n="orbIdle">اضغط للتحدث</span>
+            </span>
+          </button>
+
+          <div class="transcript" role="status" aria-live="polite" aria-atomic="true">
+            <small id="transcript-label" data-i18n="readyForCommand">جاهز لأمرك</small>
+            <p id="transcript-text" data-i18n="commandExample">جرّب: «افتح يوتيوب وابحث عن موسيقى هادئة»</p>
+          </div>
+
+          <form class="command-bar" id="command-form">
+            <label class="sr-only" for="command-input" data-i18n="commandInputLabel">اكتب أمرًا</label>
+            <input
+              id="command-input"
+              type="text"
+              autocomplete="off"
+              data-i18n-placeholder="commandPlaceholder"
+              placeholder="أو اكتب ما تريد تنفيذه…"
+            />
+            <button
+              id="send-button"
+              type="submit"
+              data-i18n-aria-label="sendCommandLabel"
+              data-i18n-title="sendCommandLabel"
+              aria-label="إرسال الأمر"
+              title="إرسال الأمر"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 20 18-8L3 4v6l13 2-13 2v6Z"/></svg>
+            </button>
+          </form>
+
+          <div
+            class="quick-actions"
+            data-i18n-aria-label="quickActionsLabel"
+            aria-label="أوامر سريعة"
+          >
+            <button type="button" data-command-key="quickYoutubeCommand" data-i18n="quickYoutubeLabel">يوتيوب</button>
+            <button type="button" data-command-key="quickCalculatorCommand" data-i18n="quickCalculatorLabel">الحاسبة</button>
+            <button type="button" data-command-key="quickTimeCommand" data-i18n="quickTimeLabel">الوقت</button>
+            <button type="button" data-command-key="quickSearchCommand" data-i18n="quickSearchLabel">بحث سريع</button>
+          </div>
+        </section>
+      </section>
+
+      <footer>
+        <span>
+          <i aria-hidden="true"></i>
+          <span data-i18n="privacyNotice">لا يُرسل الميكروفون أو سجل الأوامر إلى خادم خارجي</span>
+        </span>
+        <span id="version-label" data-i18n="versionPreview">Rayluno 1.0</span>
+      </footer>
+    </main>
+
+    <dialog
+      class="settings-dialog"
+      id="settings-dialog"
+      data-i18n-aria-label="settingsTitle"
+      aria-label="إعدادات المساعد"
+      aria-labelledby="settings-title"
+    >
+      <form id="settings-form">
+        <header class="settings-header">
+          <span>
+            <small data-i18n="settingsEyebrow">إعداد محلي</small>
+            <b id="settings-title" data-i18n="settingsTitle">إعدادات المساعد</b>
+          </span>
+          <button
+            class="dialog-close"
+            id="settings-close"
+            type="button"
+            data-i18n-aria-label="closeSettingsLabel"
+            data-i18n-title="closeSettingsLabel"
+            aria-label="إغلاق الإعدادات"
+            title="إغلاق الإعدادات"
+          >×</button>
+        </header>
+
+        <div class="first-run-card" id="first-run-card" hidden>
+          <b data-i18n="welcomeTitle">مرحبًا بك في رايلونو</b>
+          <p data-i18n="welcomeDescription">اختر تفضيلاتك؛ تبقى هذه البيانات على جهازك.</p>
+        </div>
+
+        <div class="settings-body">
+          <section class="settings-section">
+            <span class="settings-section-heading">
+              <b data-i18n="identitySection">الهوية واللغة</b>
+              <small data-i18n="identityDescription">يمكن تغيير الاسم وعبارات الاستيقاظ في أي وقت.</small>
+            </span>
+            <div class="settings-grid">
+              <label class="field field-wide">
+                <span data-i18n="assistantNameField">اسم المساعد</span>
+                <input name="name" type="text" maxlength="80" required value="رايلونو" />
+              </label>
+              <label class="field">
+                <span data-i18n="productLanguageField">لغة التشغيل</span>
+                <select name="language">
+                  <option value="auto" data-i18n="languageAutoOption">تلقائي — العربية والإنجليزية</option>
+                  <option value="ar" data-i18n="languageArabicOption">العربية</option>
+                  <option value="en" data-i18n="languageEnglishOption">English</option>
+                </select>
+              </label>
+              <label class="field">
+                <span data-i18n="arabicWakeField">عبارة الاستيقاظ العربية</span>
+                <input name="wake_phrase" type="text" maxlength="120" required value="يا رايلونو" dir="rtl" />
+              </label>
+              <label class="field">
+                <span data-i18n="englishWakeField">عبارة الاستيقاظ الإنجليزية</span>
+                <input name="english_wake_phrase" type="text" maxlength="120" required value="Hey Rayluno" dir="ltr" />
+              </label>
+              <label class="field">
+                <span data-i18n="ttsVoiceField">الصوت المفضّل</span>
+                <select name="tts_voice">
+                  <option value="" data-i18n="ttsAutomaticOption">تلقائي حسب لغة الرد</option>
+                  <option value="Naayf" data-i18n="voiceNaayfOption">Microsoft Naayf</option>
+                  <option value="Hoda" data-i18n="voiceHodaOption">Microsoft Hoda</option>
+                  <option value="Mark" data-i18n="voiceMarkOption">Microsoft Mark</option>
+                  <option value="Zira" data-i18n="voiceZiraOption">Microsoft Zira</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <details class="advanced-settings">
+            <summary data-i18n="advancedSettings">إعدادات المحركات المتقدمة</summary>
+            <div class="settings-grid">
+              <label class="field">
+                <span data-i18n="speechEngineField">محرك فهم الصوت</span>
+                <select name="stt_backend">
+                  <option value="whispercpp" data-i18n="whisperCppOption">whisper.cpp</option>
+                  <option value="faster-whisper" data-i18n="fasterWhisperOption">faster-whisper</option>
+                </select>
+              </label>
+              <label class="field">
+                <span data-i18n="speechModelField">نموذج فهم الصوت</span>
+                <input name="stt_model" type="text" maxlength="200" required value="base" dir="ltr" />
+              </label>
+              <label class="field field-wide">
+                <span data-i18n="aiModelField">نموذج الذكاء المحلي</span>
+                <input name="ollama_model" type="text" maxlength="200" required value="qwen3.5:4b" dir="ltr" />
+              </label>
+            </div>
+          </details>
+
+          <section class="license-section" aria-labelledby="license-heading">
+            <span class="license-copy">
+              <b id="license-heading" data-i18n="licenseSection">الترخيص</b>
+              <small id="license-status" data-i18n="licenseFreeStatus" role="status" aria-live="polite">Free — المزايا الأساسية نشطة</small>
+            </span>
+            <label class="field field-wide">
+              <span data-i18n="licenseTokenField">مفتاح الشراء أو رمز التفعيل اليدوي</span>
+              <textarea
+                id="license-token"
+                rows="3"
+                data-i18n-placeholder="licenseTokenPlaceholder"
+                placeholder="الصق مفتاح الشراء الذي وصلك في الإيصال…"
+                spellcheck="false"
+                autocomplete="off"
+                dir="ltr"
+              ></textarea>
+            </label>
+            <div class="license-actions">
+              <button class="secondary-button" id="license-buy" type="button" data-i18n="buyPro">شراء Pro</button>
+              <button class="secondary-button" id="license-remove" type="button" data-i18n="removeLicense" hidden>إزالة Pro</button>
+              <button class="secondary-button" id="license-refresh" type="button" data-i18n="refreshLicense" hidden>تجديد Pro</button>
+              <button class="primary-button" id="license-activate" type="button" data-i18n="activateLicense">تفعيل Pro</button>
+            </div>
+          </section>
+
+          <section class="update-section" aria-labelledby="update-heading">
+            <span class="license-copy">
+              <b id="update-heading" data-i18n="updateSection">التحديثات الآمنة</b>
+              <small id="update-status" data-i18n="updateNotChecked" role="status" aria-live="polite">لم يتم الفحص بعد</small>
+            </span>
+            <p data-i18n="updateDescription">لا يُقبل أي تحديث قبل التحقق من توقيعه وحجمه وبصمته.</p>
+            <div class="license-actions">
+              <button class="secondary-button" id="update-download" type="button" data-i18n="downloadUpdate" hidden>تنزيل والتحقق</button>
+              <button class="primary-button" id="update-check" type="button" data-i18n="checkUpdates">فحص التحديثات</button>
+            </div>
+          </section>
+
+          <p class="restart-note" data-i18n="restartSettingsNote">تُطبّق تغييرات الصوت والذكاء بعد إعادة تشغيل التطبيق.</p>
+        </div>
+
+        <div class="settings-actions">
+          <button class="danger-button" id="settings-reset" type="button" data-i18n="resetSettings">استعادة الافتراضي</button>
+          <span>
+            <button class="secondary-button" id="settings-cancel" type="button" data-i18n="cancelSettings">إلغاء</button>
+            <button class="primary-button" id="settings-save" type="submit" data-i18n="saveSettings">حفظ الإعدادات</button>
+          </span>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <script src="app.js"></script>
+  </body>
+</html>

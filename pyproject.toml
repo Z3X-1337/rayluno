@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=78.1.1", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rayluno-assistant"
+dynamic = ["version"]
+description = "A safe, local-first Arabic and English Windows assistant"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6",
+]
+desktop = [
+  "pywebview>=6.2,<7",
+]
+licensing = [
+  "cryptography>=48.0.1,<50",
+]
+updates = [
+  "cryptography>=48.0.1,<50",
+]
+commercial = [
+  "cryptography>=48.0.1,<50",
+]
+voice = [
+  "numpy>=2,<3",
+  "pywhispercpp==1.3.1",
+  "pywin32>=310; sys_platform == 'win32'",
+  "sounddevice>=0.5,<1",
+  "vosk>=0.3.45,<1",
+  "winrt-Windows.Foundation>=3.2,<4; sys_platform == 'win32'",
+  "winrt-Windows.Foundation.Collections>=3.2,<4; sys_platform == 'win32'",
+  "winrt-Windows.Media.SpeechSynthesis>=3.2,<4; sys_platform == 'win32'",
+  "winrt-Windows.Storage.Streams>=3.2,<4; sys_platform == 'win32'",
+]
+voice-fast = [
+  "faster-whisper>=1.1,<2",
+  "numpy>=2,<3",
+]
+
+[project.scripts]
+rayluno = "future_assistant.cli:main"
+future-assistant = "future_assistant.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.dynamic]
+version = {attr = "future_assistant.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"future_assistant.ui" = ["*.html", "*.css", "*.js"]
+"future_assistant" = ["assets/*.pem"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]

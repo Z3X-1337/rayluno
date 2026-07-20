@@ -1,0 +1,13 @@
+This Rayluno 1.0.0 installer was created with Nullsoft Scriptable
+Install System (NSIS) 3.12.
+
+NSIS is Copyright (C) 1999-2026 Contributors and is distributed under open
+source licenses including the zlib/libpng license. NSIS permits commercial use.
+The NSIS project is not the author or publisher of Rayluno and does not
+endorse this product.
+
+NSIS is the installer builder, not a publisher-identity signature. The current
+private-beta installer is not Windows Authenticode-signed and must not be
+represented as a trusted public release until that separate signing step is done.
+
+License information: https://nsis.sourceforge.io/Docs/AppendixI.html
