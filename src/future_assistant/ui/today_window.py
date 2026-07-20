@@ -1,8 +1,7 @@
-"""Today command-center extension for the existing desktop bridge.
+"""Today and verified-execution extensions for the existing desktop bridge.
 
-The extension keeps personal task/reminder state out of the legacy desktop module while
-preserving its public API. The composition wrapper temporarily substitutes the enhanced
-API only while the desktop window is running.
+The composition wrapper keeps personal state and security receipts out of the legacy desktop
+module while preserving its public API.
 """
 
 from __future__ import annotations
@@ -11,6 +10,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
+from future_assistant.domain import RuntimeResult, RuntimeStatus
 from future_assistant.reminders import (
     AgendaService,
     AgendaSnapshot,
@@ -43,6 +43,30 @@ def _reminder_public(reminder: Reminder) -> dict[str, object]:
         "due_at": reminder.due_at.astimezone().isoformat(),
         "delivered": reminder.delivered_at is not None,
         "snooze_count": reminder.snooze_count,
+    }
+
+
+def _manifest_public(manifest: Any) -> dict[str, object]:
+    return {
+        "skill_id": str(manifest.skill_id),
+        "permission": str(manifest.permission),
+        "risk": str(manifest.risk.value),
+        "confirmation": str(manifest.confirmation.value),
+    }
+
+
+def _receipt_public(receipt: Any) -> dict[str, object]:
+    return {
+        "receipt_id": str(receipt.receipt_id),
+        "timestamp": str(receipt.timestamp),
+        "skill_id": str(receipt.skill_id),
+        "permission": str(receipt.permission),
+        "risk": str(receipt.risk),
+        "status": str(receipt.status),
+        "policy_reason": str(receipt.policy_reason),
+        "action": dict(receipt.action),
+        "previous_hash": str(receipt.previous_hash),
+        "receipt_hash": str(receipt.receipt_hash),
     }
 
 
@@ -108,7 +132,7 @@ def build_due_reminder_events(reminders: ReminderService) -> list[dict[str, obje
 
 
 class TodayDesktopApi(legacy.DesktopApi):
-    """Desktop API extended with structured local Today data and reminder events."""
+    """Desktop API extended with Today data and verifiable execution state."""
 
     def __init__(
         self,
@@ -136,6 +160,7 @@ class TodayDesktopApi(legacy.DesktopApi):
     def get_snapshot(self) -> dict[str, object]:
         snapshot = super().get_snapshot()
         snapshot["personal"] = self.get_personal_snapshot()
+        snapshot["verified"] = self.get_verified_snapshot()
         return snapshot
 
     def get_personal_snapshot(self) -> dict[str, object]:
@@ -157,11 +182,60 @@ class TodayDesktopApi(legacy.DesktopApi):
                 "privacy": "local",
             }
 
+    def get_verified_snapshot(self) -> dict[str, object]:
+        try:
+            engine = self.runtime.skill_engine
+            manifests = engine.registry.manifests
+            pending = self.runtime.pending
+            ledger = self.runtime.receipt_ledger
+            receipts = tuple(getattr(ledger, "receipts", ()))
+            pending_manifest = None
+            if pending is not None:
+                assessment = next(
+                    (item for item in pending.assessments if item.requires_confirmation),
+                    pending.assessments[0],
+                )
+                pending_manifest = _manifest_public(assessment.manifest)
+            return {
+                "available": True,
+                "skills": [_manifest_public(manifest) for manifest in manifests],
+                "pending": pending_manifest,
+                "receipts": [_receipt_public(receipt) for receipt in reversed(receipts[-5:])],
+                "chain_head": receipts[-1].receipt_hash if receipts else None,
+                "privacy": "local",
+            }
+        except Exception:
+            return {
+                "available": False,
+                "skills": [],
+                "pending": None,
+                "receipts": [],
+                "chain_head": None,
+                "privacy": "local",
+            }
+
     def poll_due_reminders(self) -> dict[str, object]:
         try:
             return {"ok": True, "events": build_due_reminder_events(self._personal_reminders)}
         except Exception:
             return {"ok": False, "events": []}
+
+    def _result_payload(self, result: RuntimeResult, command: str) -> dict[str, object]:
+        payload = super()._result_payload(result, command)
+        if result.status is RuntimeStatus.CONFIRMATION_REQUIRED:
+            payload["ok"] = True
+            pending = getattr(self.runtime, "pending", None)
+            if pending is not None:
+                assessment = next(
+                    (item for item in pending.assessments if item.requires_confirmation),
+                    pending.assessments[0],
+                )
+                payload["confirmation"] = _manifest_public(assessment.manifest)
+        if result.executions:
+            receipts = getattr(self.runtime, "last_receipts", ())
+            if receipts:
+                payload["receipt"] = _receipt_public(receipts[-1])
+        return payload
 
 
 def start_desktop(*args: Any, **kwargs: Any) -> None:
