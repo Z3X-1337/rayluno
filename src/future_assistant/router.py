@@ -9,6 +9,8 @@ from datetime import datetime
 from .actions import ActionFactory, normalize_text
 from .agenda_commands import AgendaCommandPlanner
 from .domain import Plan, PlanSource, VolumeOperation
+from .memory import MemoryService, SQLiteMemoryStore
+from .memory_commands import MemoryCommandPlanner
 from .reminders import AgendaService, ReminderService, SQLiteReminderStore
 from .task_commands import TaskCommandPlanner
 from .tasks import SQLiteTaskStore, TaskService
@@ -41,6 +43,7 @@ class DeterministicRouter:
         actions: ActionFactory,
         task_service: TaskService | None = None,
         reminder_service: ReminderService | None = None,
+        memory_service: MemoryService | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.actions = actions
@@ -50,6 +53,10 @@ class DeterministicRouter:
         reminders = reminder_service or ReminderService(
             SQLiteReminderStore(actions.config.reminders_path), clock=clock
         )
+        memories = memory_service or MemoryService(
+            SQLiteMemoryStore(actions.config.memory_path), clock=clock
+        )
+        self.memory_commands = MemoryCommandPlanner(memories)
         self.agenda_commands = AgendaCommandPlanner(
             reminders, AgendaService(service, reminders, clock=clock)
         )
@@ -70,6 +77,10 @@ class DeterministicRouter:
         volume = self._route_volume(normalized)
         if volume is not None:
             return volume
+
+        memory = self.memory_commands.plan(normalized, command)
+        if memory is not None:
+            return memory
 
         agenda = self.agenda_commands.plan(normalized, command)
         if agenda is not None:
