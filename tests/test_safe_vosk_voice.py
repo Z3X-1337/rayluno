@@ -177,6 +177,4 @@ def test_push_to_talk_reports_missing_speech_without_crashing() -> None:
     )
 
     assert loop.run() == 0
-    assert errors == [
-        "لم ألتقط كلامًا واضحًا. اضغط زر الميكروفون وتحدث مباشرة خلال ثلاث ثوانٍ."
-    ]
+    assert errors == ["لم ألتقط كلامًا واضحًا. اضغط زر الميكروفون وتحدث مباشرة خلال ثلاث ثوانٍ."]
