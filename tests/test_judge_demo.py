@@ -54,4 +54,4 @@ def test_judge_demo_can_show_fail_closed_behavior() -> None:
     result = runtime.handle(JUDGE_BLOCK_COMMAND_AR)
 
     assert result.status is RuntimeStatus.BLOCKED
-    assert "ليست مهارة مسجلة" in result.message
+    assert "ليس مهارة مسجلة" in result.message
