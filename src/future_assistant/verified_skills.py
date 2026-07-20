@@ -77,12 +77,17 @@ class VerifiedSkillEngine:
         manifest = self.registry.resolve(action)
         if manifest is None:
             return None
+        proposal_sources = {PlanSource.OLLAMA, PlanSource.DEMO}
         requires_confirmation = manifest.confirmation is ConfirmationPolicy.ALWAYS or (
             manifest.confirmation is ConfirmationPolicy.MODEL_PROPOSED
-            and source is PlanSource.OLLAMA
+            and source in proposal_sources
         )
         if requires_confirmation:
-            reason = "model_proposed_consequential_skill"
+            reason = (
+                "demo_proposed_consequential_skill"
+                if source is PlanSource.DEMO
+                else "model_proposed_consequential_skill"
+            )
         else:
             reason = "registered_skill_policy_satisfied"
         return SkillAssessment(manifest, requires_confirmation, reason)
