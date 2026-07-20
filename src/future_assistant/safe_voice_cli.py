@@ -20,8 +20,8 @@ from .voice.loop import (
     Speaker,
     StreamFactory,
     Transcriber,
-    WakeCallback,
     VoiceLoop,
+    WakeCallback,
 )
 from .voice.microphone import MicrophoneStream
 from .voice.recorder import UtteranceRecorder, UtteranceRecorderConfig
