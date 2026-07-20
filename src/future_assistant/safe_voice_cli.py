@@ -1,25 +1,122 @@
-"""Crash-resistant Windows voice entry point using Vosk for command transcription."""
+"""Crash-resistant Windows voice entry point using local Vosk transcription."""
 
 from __future__ import annotations
 
 import sys
 from collections.abc import Sequence
+from contextlib import suppress
 from dataclasses import replace
 from pathlib import Path
+from threading import Event, Lock
 
 from . import cli
 from .localization import Language
 from .ui import window as desktop_window
 from .voice.errors import VoiceConfigurationError
-from .voice.loop import ErrorCallback, VoiceLoop, WakeCallback
+from .voice.loop import (
+    AudioStream,
+    CommandCallback,
+    ErrorCallback,
+    Speaker,
+    StreamFactory,
+    Transcriber,
+    WakeCallback,
+    VoiceLoop,
+)
 from .voice.microphone import MicrophoneStream
 from .voice.recorder import UtteranceRecorder, UtteranceRecorderConfig
 from .voice.settings import CommandHandler, VoiceSettings
 from .voice.tts import WindowsOneCoreSpeaker
 from .voice.vosk_transcription import VoskTranscriber
-from .voice.wakeword import CompositeWakeWordDetector, VoskWakeWordDetector
 
 _ORIGINAL_BUILD_VOICE_LOOP = desktop_window.build_voice_loop
+
+
+class PushToTalkVoiceLoop:
+    """Record, transcribe, and dispatch exactly one command per microphone click."""
+
+    def __init__(
+        self,
+        *,
+        stream_factory: StreamFactory,
+        recorder: UtteranceRecorder,
+        transcriber: Transcriber,
+        on_command: CommandCallback,
+        speaker: Speaker | None = None,
+        on_wake: WakeCallback | None = None,
+        on_error: ErrorCallback | None = None,
+        sample_rate: int = 16_000,
+    ) -> None:
+        self.stream_factory = stream_factory
+        self.recorder = recorder
+        self.transcriber = transcriber
+        self.on_command = on_command
+        self.speaker = speaker
+        self.on_wake = on_wake
+        self.on_error = on_error
+        self.sample_rate = sample_rate
+        self._stop_event = Event()
+        self._state_lock = Lock()
+        self._active_stream: AudioStream | None = None
+        self._running = False
+
+    @property
+    def running(self) -> bool:
+        with self._state_lock:
+            return self._running
+
+    def run(self) -> int:
+        with self._state_lock:
+            if self._running:
+                raise RuntimeError("التسجيل الصوتي يعمل بالفعل.")
+            self._running = True
+            self._stop_event.clear()
+
+        try:
+            with self.stream_factory() as stream:
+                with self._state_lock:
+                    self._active_stream = stream
+                if self.on_wake is not None:
+                    self.on_wake()
+                utterance = self.recorder.record(
+                    iter(stream),
+                    stop_event=self._stop_event,
+                )
+                if not utterance or self._stop_event.is_set():
+                    raise VoiceConfigurationError(
+                        "لم ألتقط كلامًا واضحًا. اضغط زر الميكروفون وتحدث مباشرة "
+                        "خلال ثلاث ثوانٍ."
+                    )
+                text = self.transcriber.transcribe(
+                    utterance,
+                    sample_rate=self.sample_rate,
+                ).strip()
+                if not text:
+                    raise VoiceConfigurationError(
+                        "تم تسجيل الصوت، لكن Vosk لم يستخرج نصًا واضحًا. تحدث قرب "
+                        "الميكروفون وبجملة قصيرة."
+                    )
+                response = self.on_command(text)
+                if self.speaker is not None and response and response.strip():
+                    self.speaker.speak(response)
+                return 1
+        except Exception as exc:
+            if self.on_error is None:
+                raise
+            self.on_error(exc)
+            return 0
+        finally:
+            with self._state_lock:
+                self._active_stream = None
+                self._running = False
+
+    def stop(self) -> None:
+        self._stop_event.set()
+        with self._state_lock:
+            stream = self._active_stream
+        if stream is not None:
+            with suppress(Exception):
+                stream.close()
 
 
 def _command_model(settings: VoiceSettings) -> Path:
@@ -60,33 +157,8 @@ def _build_safe_voice_loop(
     if settings.tts_enabled and sys.platform == "win32":
         speaker = WindowsOneCoreSpeaker(voice_name_contains=settings.tts_voice_name)
 
-    detectors: list[VoskWakeWordDetector] = []
-    if settings.language in {Language.AR, Language.AUTO}:
-        assert settings.vosk_model_path is not None
-        detectors.append(
-            VoskWakeWordDetector(
-                model_path=settings.vosk_model_path,
-                wake_phrase=settings.wake_phrase,
-                constrained_grammar=settings.vosk_use_grammar,
-            )
-        )
-    if settings.language in {Language.EN, Language.AUTO}:
-        assert settings.vosk_english_model_path is not None
-        detectors.append(
-            VoskWakeWordDetector(
-                model_path=settings.vosk_english_model_path,
-                wake_phrase=settings.english_wake_phrase,
-                constrained_grammar=settings.vosk_english_use_grammar,
-            )
-        )
-    wake_detector = (
-        detectors[0]
-        if len(detectors) == 1
-        else CompositeWakeWordDetector(tuple(detectors))
-    )
-    return VoiceLoop(
+    loop = PushToTalkVoiceLoop(
         stream_factory=lambda: MicrophoneStream(device=settings.microphone_device),
-        wake_detector=wake_detector,
         recorder=UtteranceRecorder(
             UtteranceRecorderConfig(rms_threshold=settings.rms_threshold)
         ),
@@ -96,6 +168,7 @@ def _build_safe_voice_loop(
         on_wake=on_wake,
         on_error=on_error,
     )
+    return loop  # type: ignore[return-value]
 
 
 def main(argv: Sequence[str] | None = None) -> int:
