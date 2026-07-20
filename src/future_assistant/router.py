@@ -49,6 +49,10 @@ class DeterministicRouter:
         if volume is not None:
             return volume
 
+        tasks = self._route_tasks(normalized)
+        if tasks is not None:
+            return tasks
+
         youtube = self._route_youtube(normalized)
         if youtube is not None:
             return youtube
@@ -90,6 +94,104 @@ class DeterministicRouter:
             return self._plan(action) if action else None
 
         return None
+
+    def _route_tasks(self, normalized: str) -> Plan | None:
+        if normalized in {
+            "المهام",
+            "مهامي",
+            "اعرض المهام",
+            "اعرض مهامي",
+            "ما هي مهامي",
+            "شو مهامي",
+            "show tasks",
+            "show my tasks",
+            "list tasks",
+            "list my tasks",
+            "what are my tasks",
+        }:
+            return self._plan(self.actions.list_tasks())
+
+        if normalized in {
+            "اعرض كل المهام",
+            "اعرض المهام المكتملة",
+            "سجل المهام",
+            "show all tasks",
+            "show completed tasks",
+            "task history",
+        }:
+            return self._plan(self.actions.list_tasks(include_completed=True))
+
+        complete_patterns = (
+            r"^(?:انجز|اكمل|انهي|اتمم)(?: المهمه| المهمة)?\s+(?:رقم\s+)?(\d+)$",
+            r"^(?:complete|finish|done with|mark)(?: task)?\s+(\d+)(?: as done| complete)?$",
+            r"^mark task\s+(\d+)\s+(?:done|complete)$",
+        )
+        for pattern in complete_patterns:
+            match = re.match(pattern, normalized)
+            if match:
+                action = self.actions.complete_task(int(match.group(1)))
+                return self._plan(action) if action else None
+
+        delete_patterns = (
+            r"^(?:احذف|امسح|الغ)(?: المهمه| المهمة)?\s+(?:رقم\s+)?(\d+)$",
+            r"^(?:delete|remove|cancel)(?: task)?\s+(\d+)$",
+        )
+        for pattern in delete_patterns:
+            match = re.match(pattern, normalized)
+            if match:
+                action = self.actions.delete_task(int(match.group(1)))
+                return self._plan(action) if action else None
+
+        create_patterns = (
+            r"^(?:اضف|ضيف|سجل|دون)(?: لي)?(?: مهمه| مهمة)?\s+(.+)$",
+            r"^(?:ذكرني)(?: ان| ب)?\s+(.+)$",
+            r"^(?:add|create)(?: a)? task(?: to)?\s+(.+)$",
+            r"^remind me to\s+(.+)$",
+        )
+        for pattern in create_patterns:
+            match = re.match(pattern, normalized)
+            if not match:
+                continue
+            title, priority, due = self._task_metadata(match.group(1))
+            action = self.actions.create_task(title, priority=priority, due=due)
+            return self._plan(action) if action else None
+        return None
+
+    @staticmethod
+    def _task_metadata(value: str) -> tuple[str, str, str | None]:
+        title = value.strip()
+        due = None
+        priority = "normal"
+
+        high_patterns = (
+            r"(?:\s+)(?:بأولوية عالية|باولوية عالية|عاجلة|مهمة جدا)$",
+            r"(?:\s+)(?:high priority|urgent)$",
+        )
+        low_patterns = (
+            r"(?:\s+)(?:بأولوية منخفضة|باولوية منخفضة|غير عاجلة)$",
+            r"(?:\s+)(?:low priority)$",
+        )
+        if any(re.search(pattern, title) for pattern in high_patterns):
+            for pattern in high_patterns:
+                title = re.sub(pattern, "", title).strip()
+            priority = "high"
+        elif any(re.search(pattern, title) for pattern in low_patterns):
+            for pattern in low_patterns:
+                title = re.sub(pattern, "", title).strip()
+            priority = "low"
+
+        due_patterns = (
+            (r"(?:\s+)(?:اليوم|لهذا اليوم)$", "today"),
+            (r"(?:\s+)(?:غدا|بكرا|للغد)$", "tomorrow"),
+            (r"(?:\s+)(?:today)$", "today"),
+            (r"(?:\s+)(?:tomorrow)$", "tomorrow"),
+        )
+        for pattern, value_due in due_patterns:
+            if re.search(pattern, title):
+                title = re.sub(pattern, "", title).strip()
+                due = value_due
+                break
+        return title, priority, due
 
     def _route_volume(self, normalized: str) -> Plan | None:
         if any(
