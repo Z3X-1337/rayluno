@@ -22,14 +22,31 @@ _CORRECTIONS = {
     "بكره": "بكرا",
 }
 
+# Speech recognizers frequently append a feminine or clitic suffix to short
+# Arabic imperative verbs. Recovery is deliberately limited to the first token:
+# it repairs command morphology without rewriting arbitrary sentence content.
+_INITIAL_COMMAND_CORRECTIONS = {
+    "افتحي": "افتح",
+    "افتحلي": "افتح",
+    "شغلي": "شغل",
+    "شغللي": "شغل",
+    "ابحثي": "ابحث",
+    "ابحثلي": "ابحث",
+    "دوري": "دور",
+    "فتشي": "فتش",
+    "ذكريني": "ذكرني",
+}
+
 _Value = TypeVar("_Value")
 
 
 def normalize_command(value: str) -> str:
     value = _ARABIC_DIACRITICS.sub("", value).replace("ـ", "")
     value = value.translate(_DIGITS).translate(_CHARACTERS)
-    tokens = value.casefold().strip().split()
-    return " ".join(_CORRECTIONS.get(token, token) for token in tokens)
+    tokens = [_CORRECTIONS.get(token, token) for token in value.casefold().strip().split()]
+    if tokens:
+        tokens[0] = _INITIAL_COMMAND_CORRECTIONS.get(tokens[0], tokens[0])
+    return " ".join(tokens)
 
 
 def _distance(left: str, right: str, limit: int) -> int:

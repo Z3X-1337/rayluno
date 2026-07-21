@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from threading import Lock
 from typing import Protocol, cast
 
 from .errors import VoiceConfigurationError, VoiceDependencyError
@@ -35,6 +36,12 @@ class VoskTranscriber:
         self.model_path = Path(model_path).expanduser()
         self._module: _VoskModule | None = None
         self._model: object | None = None
+        self._model_lock = Lock()
+
+    def prepare(self) -> None:
+        """Load the local model before the first command without recording audio."""
+
+        self._get_model()
 
     def transcribe(self, pcm: bytes, *, sample_rate: int = 16_000) -> str:
         if sample_rate <= 0:
@@ -59,30 +66,33 @@ class VoskTranscriber:
     def _get_model(self) -> tuple[_VoskModule, object]:
         if self._module is not None and self._model is not None:
             return self._module, self._model
-        if not self.model_path.is_dir():
-            raise VoiceConfigurationError(
-                f"مسار نموذج Vosk غير صالح أو غير موجود: {self.model_path}"
-            )
-        try:
-            import vosk
-        except ImportError as exc:
-            raise VoiceDependencyError(
-                "تحويل الكلام إلى نص عبر Vosk غير متاح. ثبّت الحزمة الاختيارية 'vosk'."
-            ) from exc
+        with self._model_lock:
+            if self._module is not None and self._model is not None:
+                return self._module, self._model
+            if not self.model_path.is_dir():
+                raise VoiceConfigurationError(
+                    f"مسار نموذج Vosk غير صالح أو غير موجود: {self.model_path}"
+                )
+            try:
+                import vosk
+            except ImportError as exc:
+                raise VoiceDependencyError(
+                    "تحويل الكلام إلى نص عبر Vosk غير متاح. ثبّت الحزمة الاختيارية 'vosk'."
+                ) from exc
 
-        module = cast("_VoskModule", vosk)
-        try:
-            set_log_level = getattr(module, "SetLogLevel", None)
-            if callable(set_log_level):
-                set_log_level(-1)
-            model = module.Model(str(self.model_path))
-        except Exception as exc:
-            raise VoiceConfigurationError(
-                "تعذّر تحميل نموذج Vosk للتفريغ الصوتي. تحقق من اكتمال ملفات النموذج."
-            ) from exc
-        self._module = module
-        self._model = model
-        return module, model
+            module = cast("_VoskModule", vosk)
+            try:
+                set_log_level = getattr(module, "SetLogLevel", None)
+                if callable(set_log_level):
+                    set_log_level(-1)
+                model = module.Model(str(self.model_path))
+            except Exception as exc:
+                raise VoiceConfigurationError(
+                    "تعذّر تحميل نموذج Vosk للتفريغ الصوتي. تحقق من اكتمال ملفات النموذج."
+                ) from exc
+            self._module = module
+            self._model = model
+            return module, model
 
     @staticmethod
     def _text_from_result(payload: str) -> str:

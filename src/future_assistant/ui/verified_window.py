@@ -74,36 +74,56 @@ class VerifiedDesktopApi(TodayDesktopApi):
         super().bind_window(window)
 
         def inject_verified_assets(*_: object) -> None:
-            window.evaluate_js(
+            judge_assets = (
                 """
-                (() => {
-                  if (!document.querySelector('link[data-rayluno-verified-v2]')) {
+                  if (!document.querySelector('link[data-rayluno-judge-polish]')) {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = 'judge_polish.css';
+                    link.dataset.raylunoJudgePolish = 'true';
+                    document.head.append(link);
+                  }
+                  if (!document.querySelector('script[data-rayluno-judge-polish]')) {
+                    const script = document.createElement('script');
+                    script.src = 'judge_polish.js';
+                    script.dataset.raylunoJudgePolish = 'true';
+                    document.body.append(script);
+                  }
+            """
+                if self._judge_mode
+                else ""
+            )
+            window.evaluate_js(
+                f"""
+                (() => {{
+                  if (!document.querySelector('link[data-rayluno-verified-v2]')) {{
                     const link = document.createElement('link');
                     link.rel = 'stylesheet';
                     link.href = 'verified_v2.css';
                     link.dataset.raylunoVerifiedV2 = 'true';
                     document.head.append(link);
-                  }
-                  if (!document.querySelector('script[data-rayluno-verified-v2]')) {
+                  }}
+                  if (!document.querySelector('script[data-rayluno-verified-v2]')) {{
                     const script = document.createElement('script');
                     script.src = 'verified_v2.js';
                     script.dataset.raylunoVerifiedV2 = 'true';
                     document.body.append(script);
-                  }
-                  if (!document.querySelector('link[data-rayluno-trust-center]')) {
+                  }}
+                  if (!document.querySelector('link[data-rayluno-trust-center]')) {{
                     const link = document.createElement('link');
                     link.rel = 'stylesheet';
                     link.href = 'trust_center.css';
                     link.dataset.raylunoTrustCenter = 'true';
                     document.head.append(link);
-                  }
-                  if (!document.querySelector('script[data-rayluno-trust-center]')) {
+                  }}
+                  if (!document.querySelector('script[data-rayluno-trust-center]')) {{
                     const script = document.createElement('script');
                     script.src = 'trust_center.js';
                     script.dataset.raylunoTrustCenter = 'true';
                     document.body.append(script);
-                  }
-                })();
+                  }}
+                  {judge_assets}
+                }})();
                 """
             )
 

@@ -1,0 +1,194 @@
+html[data-rayluno-judge-mode="true"] {
+  --judge-accent: #7af5e5;
+  --judge-blue: #7c9cff;
+  --judge-gold: #ffd47a;
+}
+
+html[data-rayluno-judge-mode="true"] body {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(45, 104, 132, 0.29), transparent 32%),
+    radial-gradient(circle at 86% 14%, rgba(124, 156, 255, 0.13), transparent 25%),
+    linear-gradient(145deg, #050810 0%, #08111d 54%, #060910 100%);
+}
+
+html[data-rayluno-judge-mode="true"] .topbar {
+  border-bottom-color: rgba(122, 245, 229, 0.2);
+  background: rgba(4, 8, 15, 0.73);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.18);
+}
+
+.judge-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 212, 122, 0.3);
+  border-radius: 999px;
+  color: #f7dfad;
+  background: linear-gradient(135deg, rgba(255, 212, 122, 0.1), rgba(124, 156, 255, 0.08));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  white-space: nowrap;
+}
+
+.judge-mode-badge i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--judge-gold);
+  box-shadow: 0 0 13px rgba(255, 212, 122, 0.8);
+}
+
+html[data-rayluno-judge-mode="true"] .panel {
+  border-color: rgba(144, 197, 218, 0.17);
+  background: linear-gradient(150deg, rgba(17, 28, 43, 0.86), rgba(6, 11, 20, 0.78));
+  box-shadow: 0 28px 85px rgba(0, 0, 0, 0.28);
+}
+
+html[data-rayluno-judge-mode="true"] .assistant-stage {
+  position: relative;
+}
+
+html[data-rayluno-judge-mode="true"] .assistant-stage::before {
+  content: "";
+  position: absolute;
+  width: min(560px, 76%);
+  aspect-ratio: 1.9;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(100, 234, 220, 0.09), transparent 68%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+html[data-rayluno-judge-mode="true"] .orb {
+  filter: drop-shadow(0 24px 44px rgba(0, 0, 0, 0.42));
+}
+
+html[data-rayluno-judge-mode="true"] .orb::before {
+  border-color: rgba(122, 245, 229, 0.31);
+  box-shadow:
+    inset 0 0 62px rgba(78, 178, 190, 0.17),
+    0 0 74px rgba(67, 206, 198, 0.15);
+}
+
+html[data-rayluno-judge-mode="true"] .orb.listening::before {
+  box-shadow:
+    inset 0 0 68px rgba(87, 232, 219, 0.25),
+    0 0 92px rgba(69, 220, 208, 0.24);
+}
+
+html[data-rayluno-judge-mode="true"] .orb.thinking::before {
+  border-color: rgba(124, 156, 255, 0.44);
+  box-shadow:
+    inset 0 0 68px rgba(95, 128, 255, 0.22),
+    0 0 92px rgba(95, 128, 255, 0.2);
+}
+
+html[data-rayluno-judge-mode="true"] .orb.error::before {
+  border-color: rgba(255, 127, 145, 0.5);
+  box-shadow:
+    inset 0 0 62px rgba(255, 91, 119, 0.18),
+    0 0 76px rgba(255, 91, 119, 0.18);
+}
+
+html[data-rayluno-judge-mode="true"] .transcript {
+  width: min(680px, 92%);
+  padding: 15px 21px;
+  border: 1px solid rgba(122, 245, 229, 0.15);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(15, 27, 41, 0.73), rgba(8, 14, 24, 0.58));
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(16px);
+}
+
+html[data-rayluno-judge-mode="true"] .transcript p {
+  font-size: clamp(16px, 1.35vw, 20px);
+  line-height: 1.65;
+  text-wrap: balance;
+}
+
+.judge-proof-strip {
+  z-index: 1;
+  width: min(720px, 94%);
+  margin: 11px 0 3px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.judge-proof-strip > span {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid rgba(122, 245, 229, 0.12);
+  border-radius: 11px;
+  color: #b6c8ce;
+  background: rgba(9, 17, 28, 0.62);
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.judge-proof-strip i {
+  flex: 0 0 auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--judge-accent);
+  box-shadow: 0 0 9px rgba(122, 245, 229, 0.75);
+}
+
+.judge-proof-strip b {
+  font-weight: 650;
+}
+
+html[data-rayluno-judge-mode="true"] .verified-v2-trigger {
+  border-color: rgba(122, 245, 229, 0.32);
+  background: linear-gradient(135deg, rgba(122, 245, 229, 0.13), rgba(124, 156, 255, 0.1));
+  box-shadow: 0 0 24px rgba(122, 245, 229, 0.08);
+}
+
+html[data-rayluno-judge-mode="true"] .verified-v2-dialog::backdrop {
+  background: rgba(1, 4, 9, 0.78);
+  backdrop-filter: blur(12px);
+}
+
+html[data-rayluno-judge-mode="true"] .verified-v2-shell {
+  border-color: rgba(122, 245, 229, 0.22);
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.55);
+}
+
+html[data-rayluno-judge-mode="true"] .verified-v2-approve {
+  box-shadow: 0 12px 30px rgba(58, 203, 182, 0.18);
+}
+
+html[data-rayluno-judge-mode="true"] .verified-v2-reject {
+  border-color: rgba(255, 127, 145, 0.25);
+}
+
+@media (max-width: 1040px) {
+  .judge-mode-badge {
+    display: none;
+  }
+
+  .judge-proof-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-rayluno-judge-mode="true"] *,
+  html[data-rayluno-judge-mode="true"] *::before,
+  html[data-rayluno-judge-mode="true"] *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
