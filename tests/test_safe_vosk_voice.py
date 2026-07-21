@@ -8,7 +8,11 @@ from types import SimpleNamespace
 import pytest
 
 from future_assistant.localization import Language
-from future_assistant.safe_voice_cli import PushToTalkVoiceLoop, _build_safe_voice_loop
+from future_assistant.safe_voice_cli import (
+    PushToTalkVoiceLoop,
+    _build_safe_voice_loop,
+    _preload_requested,
+)
 from future_assistant.voice.errors import VoiceConfigurationError
 from future_assistant.voice.settings import VoiceSettings
 from future_assistant.voice.vosk_transcription import VoskTranscriber
@@ -76,7 +80,7 @@ class FakeTranscriber:
         return self.text
 
 
-def test_vosk_transcriber_is_lazy_local_and_reuses_model(
+def test_vosk_transcriber_preloads_locally_and_reuses_model(
     tmp_path,
     monkeypatch,
 ) -> None:  # noqa: ANN001
@@ -96,9 +100,18 @@ def test_vosk_transcriber_is_lazy_local_and_reuses_model(
     monkeypatch.setitem(sys.modules, "vosk", fake_vosk)
     transcriber = VoskTranscriber(model_path=model_path)
 
+    transcriber.prepare()
     assert transcriber.transcribe(b"\x00\x00" * 20) == "افتح يوتيوب"
     assert transcriber.transcribe(b"\x01\x00" * 20) == "افتح يوتيوب"
     assert loads == [str(model_path)]
+
+
+def test_judge_vosk_preload_requires_an_explicit_environment_flag(monkeypatch) -> None:  # noqa: ANN001
+    monkeypatch.delenv("RAYLUNO_PRELOAD_VOSK", raising=False)
+    assert _preload_requested() is False
+
+    monkeypatch.setenv("RAYLUNO_PRELOAD_VOSK", "true")
+    assert _preload_requested() is True
 
 
 def test_vosk_transcriber_rejects_missing_model(tmp_path) -> None:  # noqa: ANN001
@@ -125,6 +138,7 @@ def test_safe_voice_entry_uses_one_shot_vosk_for_arabic_commands(
     assert isinstance(loop, PushToTalkVoiceLoop)
     assert isinstance(loop.transcriber, VoskTranscriber)
     assert loop.transcriber.model_path == arabic_model
+    assert loop.recorder.config.silence_seconds == 0.55
     assert loop.speaker is None
 
 
