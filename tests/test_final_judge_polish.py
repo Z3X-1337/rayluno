@@ -37,7 +37,7 @@ def test_documented_judge_launcher_uses_the_stable_bounded_voice_path() -> None:
         'RAYLUNO_TTS_ENABLED = if ($EnableTts)',
         "future_assistant.safe_voice_cli",
         '"--judge-demo"',
-        '"--doctor"',
+        "--doctor",
     )
     assert all(token in launcher for token in required_launcher_tokens)
     assert "--no-audit" not in launcher
