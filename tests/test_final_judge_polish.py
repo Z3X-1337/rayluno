@@ -35,7 +35,7 @@ def test_documented_judge_launcher_uses_the_stable_bounded_voice_path() -> None:
     required_launcher_tokens = (
         'RAYLUNO_LANGUAGE = "ar"',
         'RAYLUNO_STT_BACKEND = "vosk"',
-        'RAYLUNO_TTS_ENABLED = if ($EnableTts)',
+        "RAYLUNO_TTS_ENABLED = if ($EnableTts)",
         "future_assistant.safe_voice_cli",
         '"--judge-demo"',
         "--doctor",
