@@ -24,9 +24,7 @@ class VerifiedDesktopApi(TodayDesktopApi):
                 "authenticated_checkpoint": bool(
                     integrity_ok and getattr(ledger, "authenticated_checkpoint", False)
                 ),
-                "keyed_fingerprints": callable(
-                    getattr(ledger, "fingerprint_arguments", None)
-                ),
+                "keyed_fingerprints": callable(getattr(ledger, "fingerprint_arguments", None)),
                 "explicit_memory": callable(getattr(self, "get_memory_snapshot", None)),
                 "no_shell": True,
                 "telemetry_off": not bool(settings.telemetry_opt_in),
