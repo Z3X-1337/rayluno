@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -139,13 +139,11 @@ def test_sqlite_task_store_persists_and_enforces_single_completion(tmp_path) -> 
 
 
 def test_runtime_supports_full_private_task_lifecycle(config: AssistantConfig) -> None:
-    def clock() -> datetime:
-        return datetime(2026, 7, 20, 8, 0, tzinfo=UTC)
-
+    expected_before = datetime.now(UTC).date() + timedelta(days=1)
     audit = MemoryAuditLogger()
     runtime = build_runtime(
         config,
-        effects=DryRunEffects(clock=clock),
+        effects=DryRunEffects(),
         audit=audit,
     )
 
@@ -154,12 +152,15 @@ def test_runtime_supports_full_private_task_lifecycle(config: AssistantConfig) -
     completed = runtime.handle("انجز المهمة رقم 1")
     empty = runtime.handle("اعرض مهامي")
     history = runtime.handle("اعرض كل المهام")
+    expected_after = datetime.now(UTC).date() + timedelta(days=1)
 
     assert created.status is RuntimeStatus.COMPLETED
     assert created.message == "أضفت المهمة رقم 1: تجهيز فيديو الحكام."
     assert listed.status is RuntimeStatus.COMPLETED
     assert "○ 1) تجهيز فيديو الحكام" in listed.message
-    assert "2026-07-21" in listed.message
+    assert any(
+        expected.isoformat() in listed.message for expected in {expected_before, expected_after}
+    )
     assert completed.message == "أنجزت المهمة رقم 1: تجهيز فيديو الحكام."
     assert empty.message == "لا توجد مهام في هذه القائمة."
     assert "✓ 1) تجهيز فيديو الحكام" in history.message
