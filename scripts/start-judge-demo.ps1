@@ -13,16 +13,19 @@ if (-not (Test-Path -LiteralPath $Python)) {
     throw "Missing .venv. Run: py -3.11 -m venv .venv"
 }
 
+$env:RAYLUNO_NAME = "Rayluno"
 $env:RAYLUNO_LANGUAGE = "ar"
 $env:RAYLUNO_STT_BACKEND = "vosk"
 $env:RAYLUNO_WHISPER_LANGUAGE = "ar"
 $env:RAYLUNO_RMS_THRESHOLD = "250"
+$env:RAYLUNO_PRELOAD_VOSK = "true"
 $env:RAYLUNO_TTS_ENABLED = if ($EnableTts) { "true" } else { "false" }
 
 Push-Location $RepoRoot
 try {
     Write-Host "Rayluno judge preflight" -ForegroundColor Cyan
-    Write-Host "  Voice input : local Vosk push-to-talk"
+    Write-Host "  Product name: Rayluno"
+    Write-Host "  Voice input : local Vosk push-to-talk (preloaded)"
     Write-Host "  Voice reply : $($env:RAYLUNO_TTS_ENABLED)"
     Write-Host "  Local AI    : $($UseOllama.IsPresent)"
     Write-Host "  Permissions : existing registered skills only"
