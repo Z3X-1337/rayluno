@@ -1,6 +1,6 @@
 # Rayluno — Personal AI that proves what it is allowed to do
 
-Rayluno is a local-first Arabic/English Windows personal agent that organizes a user's day, stores personal memory only after explicit consent, and performs bounded desktop actions without granting an AI model unrestricted operating-system access.
+Rayluno is a local-first Arabic/English Windows personal assistant that organizes a user's day, stores personal memory only after explicit consent, and performs bounded desktop actions without granting an AI model unrestricted operating-system access.
 
 > **The model may propose. Deterministic code decides what is permitted, records authorization before impact, and verifies the evidence before the next action.**
 
@@ -19,17 +19,19 @@ Personal assistants often sit at one of two unsafe extremes:
 Rayluno takes a third path. Natural-language input becomes a closed action plan. Every consequential action must:
 
 1. resolve to a registered skill;
-2. pass deterministic allowlist policy;
-3. request plan-specific approval;
+2. pass deterministic allow-list policy;
+3. request plan-specific approval when required;
 4. persist authorization proof before impact;
 5. execute through a bounded adapter;
 6. persist an outcome receipt;
 7. preserve a verifiable local trust history.
 
-## What works
+## Implemented product surface
 
 - Arabic and English text commands.
-- Local wake-word, speech-to-text, and text-to-speech paths for Windows.
+- Local Vosk push-to-talk speech recognition for the stable Windows judge path.
+- Existing local wake-word, recorder, Whisper, Vosk, OneCore TTS, and SAPI components.
+- Conservative Arabic normalization for common typing and transcription mistakes.
 - Persistent local tasks, reminders, snooze, completion, and one-time delivery.
 - A daily agenda with overdue work, today's commitments, next reminder, and recommended focus.
 - An explicit-consent Personal Memory Vault stored in local SQLite.
@@ -44,30 +46,68 @@ Rayluno takes a third path. Natural-language input becomes a closed action plan.
 - A per-installation HMAC-authenticated checkpoint for chain head and receipt count.
 - Fail-closed detection for malformed records, editing, reordering, journal deletion, truncation, rollback, missing checkpoint state, or checkpoint tampering.
 - A bilingual Runtime Trust Center derived from live Python state.
-- A reproducible Judge Mode requiring no account, API key, model, or external service for the core demo.
 
-## Three-minute judge path
+## Reproducible three-minute judge path
+
+The commands below are the supported Windows evaluation path. They use the same Vosk push-to-talk route that was exercised on the target Windows machine.
 
 ### 1. Install
 
-Windows with Python 3.11 or newer:
+Use Python 3.11 x64 or newer:
 
 ```powershell
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -U pip
-python -m pip install -e ".[dev,desktop,commercial]"
+python -m pip install -e ".[dev,desktop,commercial,voice]"
 ```
 
-### 2. Launch
+Install or discover the Arabic Vosk model:
 
 ```powershell
-rayluno --ui --judge-demo
+.\scripts\install-arabic-wake-model.ps1 -SetUserEnvironment
 ```
 
-Judge Mode is explicitly labelled scripted provenance through the real production trust boundary. It does **not** claim that scripted output came from a model.
+### 2. Run the preflight exactly
 
-### 3. Prove explicit-consent memory
+```powershell
+.\scripts\start-judge-demo.ps1 -CheckOnly
+```
+
+The preflight validates the Python environment, local voice dependencies, and model configuration without opening the interface.
+
+### 3. Launch the deterministic core demo
+
+```powershell
+.\scripts\start-judge-demo.ps1
+```
+
+This expands to the stable command:
+
+```powershell
+$env:RAYLUNO_LANGUAGE = "ar"
+$env:RAYLUNO_STT_BACKEND = "vosk"
+$env:RAYLUNO_WHISPER_LANGUAGE = "ar"
+$env:RAYLUNO_TTS_ENABLED = "false"
+$env:RAYLUNO_RMS_THRESHOLD = "250"
+python -m future_assistant.safe_voice_cli --ui --judge-demo
+```
+
+Optional local Ollama fallback, after confirming Ollama is running:
+
+```powershell
+.\scripts\start-judge-demo.ps1 -UseOllama
+```
+
+Optional Windows OneCore voice replies, after confirming a complete Arabic voice is installed:
+
+```powershell
+.\scripts\start-judge-demo.ps1 -EnableTts
+```
+
+The default judge launcher keeps TTS off because installed Windows voice availability varies between machines. Enabling it uses the existing OneCore implementation; it does not introduce a new cloud voice service.
+
+### 4. Prove explicit-consent memory
 
 Enter ordinary conversation:
 
@@ -89,18 +129,12 @@ Nothing is stored. Now explicitly approve a memory:
 
 Open **Memory**. The fact is visible, labelled as explicitly supplied, stored locally, and individually deletable. Memory is not silently inserted into model prompts in this release.
 
-### 4. Prove controlled execution
+### 5. Prove controlled execution and explicit approval
 
 Enter:
 
 ```text
 جهز عرض الحكام
-```
-
-or:
-
-```text
-prepare the judge demo
 ```
 
 Rayluno performs no side effect immediately. The confirmation gate displays:
@@ -111,20 +145,7 @@ Rayluno performs no side effect immediately. The confirmation gate displays:
 - a visible expiry countdown;
 - explicit Approve and Reject controls.
 
-The desktop sends the exact server-generated approval handle, not a generic confirm command. Approval consumes the handle once. Before any operating-system effect, Rayluno persists an `execution_authorized` receipt. It then executes only allowlisted effects and records the outcome separately.
-
-### 5. Open the Runtime Trust Center
-
-Open **Verified**. The Receipt Inspector now contains six live guarantees derived from Python runtime state:
-
-- **Authorization before effect**
-- **Authenticated checkpoint**
-- **Keyed fingerprints**
-- **Explicit-consent memory**
-- **No general command authority**
-- **Telemetry off**
-
-It also displays the registered-skill count, Judge Mode state, authorization ordering, chain status, and the explicit limits of local-only verification. No local key, raw command, argument value, or approval token is exposed to JavaScript.
+The desktop sends the exact server-generated approval handle, not a generic confirm command. Approval consumes the handle once. Before any operating-system effect, Rayluno persists an `execution_authorized` receipt. It then executes only allow-listed effects and records the outcome separately.
 
 ### 6. Prove fail-closed behavior
 
@@ -134,21 +155,48 @@ Enter:
 اختبر رفض مهارة غير مسجلة
 ```
 
-or:
-
-```text
-test an unregistered skill
-```
-
 The proposal is rejected before impact because it does not resolve to a registered skill.
 
-### Side-effect-free review
+### 7. Inspect the evidence
+
+Open **Verified**. The Runtime Trust Center reports six live guarantees derived from Python state:
+
+- **Authorization before effect**
+- **Authenticated checkpoint**
+- **Keyed fingerprints**
+- **Explicit-consent memory**
+- **No general command authority**
+- **Telemetry off**
+
+The Receipt Inspector displays chain status, receipt count, registered skills, Judge Mode state, and the honest limits of local-only verification. No local key, raw command, argument value, or approval token is exposed to JavaScript.
+
+A side-effect-free review is also available:
 
 ```powershell
-rayluno --ui --judge-demo --dry-run
+python -m future_assistant.safe_voice_cli --ui --judge-demo --dry-run
 ```
 
-This exercises planning, confirmation, policy, memory, write-ahead authorization, receipts, Trust Center, and the interface without opening applications or websites.
+## Judge Mode is an explicit evaluation entitlement override
+
+`--judge-demo` is not a hidden licensing bypass and is not presented as a customer activation path. It is an intentionally visible evaluation mode for reviewers.
+
+In Judge Mode, the feature checker returns `true` only for these existing bounded capabilities:
+
+- `ai.local`
+- `automation.pro`
+- `voice.local`
+
+Judge Mode also enables two clearly scripted scenarios and removes the wake-word requirement from the desktop review flow for repeatability. It does **not**:
+
+- install a paid license;
+- modify persistent entitlement state;
+- add domains or applications;
+- register unknown skills;
+- expand permissions;
+- provide shell, `eval`, or unrestricted command authority;
+- claim that scripted demo provenance came from a model.
+
+Judge Mode is displayed in the Runtime Trust Center and should remain disabled in normal customer operation.
 
 ## Trust architecture
 
@@ -173,7 +221,7 @@ Registered Skill Manifest
 Expiring single-use approval when required
         │
         ▼
-Deterministic SafetyPolicy allowlists
+Deterministic SafetyPolicy allow-lists
   ├─ allowed URL schemes and domains
   ├─ allowed application IDs
   ├─ bounded query and URL lengths
@@ -192,23 +240,6 @@ Bounded operating-system effect
 Persist outcome receipt and advance authenticated checkpoint
 ```
 
-## Personal Memory Vault
-
-Memory is opt-in by construction:
-
-- only explicit bilingual remember commands write a fact;
-- ordinary conversation is never passively persisted;
-- every fact is marked as explicitly supplied by the user;
-- normalized fingerprints prevent duplicate-memory spam;
-- structured credential patterns and Luhn-valid payment-card numbers are refused;
-- users can inspect and delete individual facts;
-- delete-all requires a short-lived, single-use Python approval handle;
-- invalid or replayed purge handles fail closed;
-- memory content stays out of the command audit log;
-- memory is not silently inserted into model prompts in this milestone.
-
-Default storage is local SQLite under the Rayluno application-data directory. It can be redirected with `RAYLUNO_MEMORY_PATH`.
-
 ## Initial registered skills
 
 | Skill ID | Permission | Risk | Confirmation |
@@ -223,26 +254,13 @@ Unregistered actions fail closed. A new command invalidates older pending intent
 
 ## Execution receipts and authenticated checkpoint
 
-The JSONL ledger uses:
-
-```text
-rayluno.execution-receipt/v2
-```
-
-It records:
-
-- confirmation requested, rejected, replaced, or expired;
-- write-ahead execution authorization;
-- execution completed, blocked, or failed;
-- skill, permission, risk, confirmation state, and policy reason;
-- safe action metadata and argument-key names;
-- installation-scoped HMAC argument digest, previous hash, and current hash.
+The JSONL ledger uses `rayluno.execution-receipt/v2`. It records confirmation, write-ahead authorization, outcome, skill, permission, risk, policy reason, safe action metadata, argument-key names, installation-scoped HMAC argument digest, previous hash, and current hash.
 
 Before registered execution and before extending the journal, Rayluno reloads the complete ledger, validates the schema, recomputes every receipt hash, verifies every link, and compares the chain head and receipt count with a per-installation HMAC-authenticated checkpoint. A failure pauses verified execution before the next effect.
 
-Raw command text, URL query values, and approval capability handles are excluded from persisted audit details. Command audit fingerprints are installation-scoped HMAC-SHA256 values rather than plain SHA-256 hashes.
+Raw command text, URL query values, and approval capability handles are excluded from persisted audit details.
 
-## Honest security boundary
+## Honest security and deployment boundary
 
 The local HMAC checkpoint is stronger than an unkeyed hash chain, but it is not a hardware-backed signature or remote transparency log.
 
@@ -252,7 +270,11 @@ The local HMAC checkpoint is stronger than an unkeyed hash chain, but it is not 
 - Current development installers are not Authenticode-signed production builds.
 - A crash after an effect but before its outcome receipt can leave an authorization in an in-doubt state; explicit crash-recovery reconciliation is future work.
 
-Future work includes operating-system protected keys, remotely witnessed checkpoints, encrypted local data, in-doubt execution reconciliation, and signed packaged builds.
+### Temporary activation hosting
+
+The current activation endpoint is pinned to an HTTPS subdomain provided by a third-party hosting platform. The client still validates a plain HTTPS endpoint, rejects credentials in URLs, rejects query strings and fragments, uses the standard HTTPS port, refuses redirects, bounds response sizes, and verifies the returned signed entitlement.
+
+This host is a temporary prototype/evaluation deployment, not the claimed final production architecture. A production release should migrate activation to a first-party Rayluno domain with independent deployment ownership, monitoring, availability controls, incident response, and key-management procedures.
 
 ## How Codex and GPT-5.6 were used
 
@@ -283,7 +305,7 @@ python -m ruff format --check .
 python -m compileall -q src
 ```
 
-The audited release passes **451 automated tests** across:
+The final-polish branch targets **465 automated tests** across:
 
 - Windows and Ubuntu;
 - Python 3.11 and Python 3.13;
@@ -292,29 +314,11 @@ The audited release passes **451 automated tests** across:
 - Ruff lint and formatting;
 - Python compilation.
 
-Useful commands:
-
-```powershell
-rayluno --doctor
-rayluno --once "يا رايلونو كم الساعة" --dry-run --no-audit
-rayluno --ui --judge-demo
-```
-
-## Optional local voice and AI
-
-Rayluno supports local wake-word detection, local speech recognition, Windows text-to-speech, and optional Ollama fallback. Install the required local components before testing these paths:
-
-```powershell
-python -m pip install -e ".[voice]"
-.\scripts\install-arabic-wake-model.ps1 -SetUserEnvironment
-ollama pull qwen3.5:4b
-rayluno --ui --judge-demo --ollama
-```
-
-Judge Mode bypasses only bounded evaluation feature gates; it does not install dependencies, expand allowlists, or grant unknown permissions.
+The previous audited baseline contained 462 passing tests. The README is updated only after the final CI matrix confirms the new total with zero failures.
 
 ## Documentation
 
+- [Final judge video script](docs/FINAL_JUDGE_SCRIPT.md)
 - [Final product and security audit](docs/FINAL_PRODUCT_AUDIT.md)
 - [Pre-submission security audit](docs/SECURITY_AUDIT_2026-07-20.md)
 - [Devpost draft](docs/RAYLUNO_DEVPOST_DRAFT.md)
@@ -323,19 +327,6 @@ Judge Mode bypasses only bounded evaluation feature gates; it does not install d
 - [Architecture](docs/ARCHITECTURE_AR.md)
 - [Release readiness](docs/RELEASE_READINESS_AR.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
-
-## Repository history
-
-The implementation was developed as reviewable pull requests:
-
-1. Personal Task Core.
-2. Reminders and Daily Agenda.
-3. Today Command Center.
-4. Verified Skills, Judge Mode, and execution receipts.
-5. Verified Execution v2: expiring handles, full-chain integrity, and Receipt Inspector.
-6. Explicit-consent Personal Memory Vault.
-7. Security audit hardening: write-ahead authorization, authenticated checkpoint, keyed fingerprints, structured-secret refusal, and bounded Judge Mode access.
-8. Runtime Trust Center and permanent JavaScript syntax verification.
 
 ## License
 
