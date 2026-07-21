@@ -30,6 +30,7 @@ Rayluno takes a third path. Natural-language input becomes a closed action plan.
 
 - Arabic and English text commands.
 - Local Vosk push-to-talk speech recognition for the stable Windows judge path.
+- Background Vosk model preloading and faster end-of-speech detection in the judge launcher to reduce first-command latency.
 - Existing local wake-word, recorder, Whisper, Vosk, OneCore TTS, and SAPI components.
 - Conservative Arabic normalization for common typing and transcription mistakes.
 - Persistent local tasks, reminders, snooze, completion, and one-time delivery.
@@ -85,13 +86,17 @@ The preflight validates the Python environment, local voice dependencies, and mo
 This expands to the stable command:
 
 ```powershell
+$env:RAYLUNO_NAME = "Rayluno"
 $env:RAYLUNO_LANGUAGE = "ar"
 $env:RAYLUNO_STT_BACKEND = "vosk"
 $env:RAYLUNO_WHISPER_LANGUAGE = "ar"
 $env:RAYLUNO_TTS_ENABLED = "false"
 $env:RAYLUNO_RMS_THRESHOLD = "250"
+$env:RAYLUNO_PRELOAD_VOSK = "true"
 python -m future_assistant.safe_voice_cli --ui --judge-demo
 ```
+
+The launcher fixes the visible product name to **Rayluno**, begins loading the local Vosk model while the interface opens, and uses a shorter bounded silence endpoint. It does not add a network dependency or broaden any permission.
 
 Optional local Ollama fallback, after confirming Ollama is running:
 
@@ -305,16 +310,16 @@ python -m ruff format --check .
 python -m compileall -q src
 ```
 
-The final-polish branch targets **465 automated tests** across:
+The final judge branch passes **467 automated tests** across:
 
 - Windows and Ubuntu;
 - Python 3.11 and Python 3.13;
-- unit, integration, localization, privacy, memory, approval, authorization-before-effect, expiry, replay, UI-contract, structured-secret, deletion, truncation, rollback, authenticated-checkpoint, Trust Center, and tamper tests;
+- unit, integration, localization, privacy, memory, approval, authorization-before-effect, expiry, replay, UI-contract, structured-secret, deletion, truncation, rollback, authenticated-checkpoint, Trust Center, voice-preload, and tamper tests;
 - JavaScript syntax validation for every UI script;
 - Ruff lint and formatting;
 - Python compilation.
 
-The previous audited baseline contained 462 passing tests. The README is updated only after the final CI matrix confirms the new total with zero failures.
+The previous audited baseline contained 462 passing tests. The final total is taken from the successful Windows 3.11 JUnit artifact after the complete CI matrix passed.
 
 ## Documentation
 
