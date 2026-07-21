@@ -12,6 +12,14 @@ def test_normalization_handles_arabic_digits_and_common_voice_typos() -> None:
     assert normalize_text("شغل يويتوب") == "شغل يوتيوب"
 
 
+def test_voice_normalization_repairs_only_command_initial_verb_inflections() -> None:
+    assert normalize_text("افتحي يويتوب") == "افتح يوتيوب"
+    assert normalize_text("شغّلي يوتوب") == "شغل يوتيوب"
+    assert normalize_text("ابحثي عن المشروع") == "ابحث عن المشروع"
+    assert normalize_text("ذكّريني بعد دقيقة") == "ذكرني بعد دقيقة"
+    assert normalize_text("قالت افتحي يوتيوب") == "قالت افتحي يوتيوب"
+
+
 def test_site_alias_typo_resolves_only_inside_configured_allowlist() -> None:
     factory = ActionFactory(AssistantConfig())
 
@@ -36,11 +44,14 @@ def test_router_recovers_real_voice_and_typing_variants() -> None:
     router = DeterministicRouter(ActionFactory(AssistantConfig()))
 
     youtube = router.route("شغل يويتوب")
+    feminine_youtube = router.route("افتحي يويتوب")
     github = router.route("افتح جيت هوب")
     notepad = router.route("افتح المفكره")
 
     assert youtube is not None
     assert youtube.actions[0].parameters["url"] == "https://www.youtube.com/"
+    assert feminine_youtube is not None
+    assert feminine_youtube.actions[0].parameters["url"] == "https://www.youtube.com/"
     assert github is not None
     assert github.actions[0].parameters["url"] == "https://github.com/"
     assert notepad is not None
@@ -52,3 +63,4 @@ def test_unknown_or_ambiguous_alias_is_not_invented() -> None:
     factory = ActionFactory(AssistantConfig())
     assert factory.open_site("موقع غير مسجل") is None
     assert DeterministicRouter(factory).route("افتح موقع غير مسجل") is None
+    assert DeterministicRouter(factory).route("افتحي موقع غير مسجل") is None
