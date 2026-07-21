@@ -24,7 +24,9 @@ class VerifiedDesktopApi(TodayDesktopApi):
                 "authenticated_checkpoint": bool(
                     integrity_ok and getattr(ledger, "authenticated_checkpoint", False)
                 ),
-                "keyed_fingerprints": callable(getattr(ledger, "fingerprint_arguments", None)),
+                "keyed_fingerprints": callable(
+                    getattr(ledger, "fingerprint_arguments", None)
+                ),
                 "explicit_memory": callable(getattr(self, "get_memory_snapshot", None)),
                 "no_shell": True,
                 "telemetry_off": not bool(settings.telemetry_opt_in),
@@ -74,7 +76,8 @@ class VerifiedDesktopApi(TodayDesktopApi):
         super().bind_window(window)
 
         def inject_verified_assets(*_: object) -> None:
-            judge_assets = """
+            judge_assets = (
+                """
                   if (!document.querySelector('link[data-rayluno-judge-polish]')) {
                     const link = document.createElement('link');
                     link.rel = 'stylesheet';
@@ -88,7 +91,10 @@ class VerifiedDesktopApi(TodayDesktopApi):
                     script.dataset.raylunoJudgePolish = 'true';
                     document.body.append(script);
                   }
-            """ if self._judge_mode else ""
+            """
+                if self._judge_mode
+                else ""
+            )
             window.evaluate_js(
                 f"""
                 (() => {{
