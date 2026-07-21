@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from collections.abc import Sequence
 from contextlib import suppress
 from dataclasses import replace
 from pathlib import Path
-from threading import Event, Lock
+from threading import Event, Lock, Thread
 
 from . import cli
 from .localization import Language
@@ -135,6 +136,22 @@ def _command_model(settings: VoiceSettings) -> Path:
     return candidate
 
 
+def _preload_requested() -> bool:
+    value = os.environ.get("RAYLUNO_PRELOAD_VOSK", "").strip().casefold()
+    return value in {"1", "true", "yes", "on"}
+
+
+def _prepare_vosk(
+    transcriber: VoskTranscriber,
+    on_error: ErrorCallback | None,
+) -> None:
+    try:
+        transcriber.prepare()
+    except Exception as exc:
+        if on_error is not None:
+            on_error(exc)
+
+
 def _build_safe_voice_loop(
     settings: VoiceSettings,
     *,
@@ -152,13 +169,26 @@ def _build_safe_voice_loop(
 
     replace(settings, stt_backend="whispercpp").validate()
     transcriber = VoskTranscriber(model_path=_command_model(settings))
+    if _preload_requested():
+        Thread(
+            target=_prepare_vosk,
+            args=(transcriber, on_error),
+            name="rayluno-vosk-preload",
+            daemon=True,
+        ).start()
+
     speaker = None
     if settings.tts_enabled and sys.platform == "win32":
         speaker = WindowsOneCoreSpeaker(voice_name_contains=settings.tts_voice_name)
 
     return PushToTalkVoiceLoop(
         stream_factory=lambda: MicrophoneStream(device=settings.microphone_device),
-        recorder=UtteranceRecorder(UtteranceRecorderConfig(rms_threshold=settings.rms_threshold)),
+        recorder=UtteranceRecorder(
+            UtteranceRecorderConfig(
+                rms_threshold=settings.rms_threshold,
+                silence_seconds=0.55,
+            )
+        ),
         transcriber=transcriber,
         on_command=on_command,
         speaker=speaker,
