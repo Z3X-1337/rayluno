@@ -2,19 +2,17 @@
 
 from __future__ import annotations
 
-import re
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
+from .command_understanding import normalize_command, resolve_allowlisted_alias
 from .config import AssistantConfig
 from .domain import Action, ActionKind, VolumeOperation
 
-_ARABIC_DIACRITICS = re.compile(r"[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]")
-
 
 def normalize_text(value: str) -> str:
-    value = _ARABIC_DIACRITICS.sub("", value).replace("ـ", "")
-    value = value.translate(str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ى": "ي"}))
-    return " ".join(value.casefold().strip().split())
+    """Backward-compatible command normalization entry point."""
+
+    return normalize_command(value)
 
 
 class ActionFactory:
@@ -76,7 +74,7 @@ class ActionFactory:
         )
 
     def open_site(self, alias: str) -> Action | None:
-        url = self._sites.get(normalize_text(alias))
+        url = resolve_allowlisted_alias(self._sites, alias)
         if url is None:
             return None
         return Action(ActionKind.OPEN_URL, {"url": url, "purpose": "site"})
@@ -90,7 +88,7 @@ class ActionFactory:
         return Action(ActionKind.OPEN_URL, {"url": value, "purpose": "site"})
 
     def open_app(self, alias: str) -> Action | None:
-        app_id = self._apps.get(normalize_text(alias))
+        app_id = resolve_allowlisted_alias(self._apps, alias)
         if app_id is None:
             return None
         return Action(ActionKind.OPEN_APP, {"app_id": app_id})
