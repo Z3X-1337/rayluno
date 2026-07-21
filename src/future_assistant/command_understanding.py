@@ -64,12 +64,13 @@ def resolve_allowlisted_alias(mapping: Mapping[str, _Value], value: str) -> _Val
         return exact
     if not 4 <= len(normalized) <= 48:
         return None
+
     limit = 1 if len(normalized) <= 7 else 2
-    candidates = [
-        (_distance(normalized, candidate, limit), candidate)
-        for candidate in mapping
-        if _distance(normalized, candidate, limit) <= limit
-    ]
+    candidates: list[tuple[int, str]] = []
+    for candidate in mapping:
+        distance = _distance(normalized, candidate, limit)
+        if distance <= limit:
+            candidates.append((distance, candidate))
     candidates.sort(key=lambda item: (item[0], len(item[1]), item[1]))
     if not candidates:
         return None
