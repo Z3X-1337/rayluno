@@ -21,16 +21,16 @@ html[data-rayluno-judge-mode="true"] .topbar {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 32px;
-  padding: 0 11px;
+  min-height: 34px;
+  padding: 0 12px;
   border: 1px solid rgba(255, 212, 122, 0.3);
   border-radius: 999px;
   color: #f7dfad;
   background: linear-gradient(135deg, rgba(255, 212, 122, 0.1), rgba(124, 156, 255, 0.08));
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.055em;
+  letter-spacing: 0.045em;
   white-space: nowrap;
 }
 
@@ -96,7 +96,7 @@ html[data-rayluno-judge-mode="true"] .orb.error::before {
 
 html[data-rayluno-judge-mode="true"] .transcript {
   width: min(680px, 92%);
-  padding: 14px 20px;
+  padding: 15px 21px;
   border: 1px solid rgba(122, 245, 229, 0.15);
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(15, 27, 41, 0.73), rgba(8, 14, 24, 0.58));
@@ -105,6 +105,8 @@ html[data-rayluno-judge-mode="true"] .transcript {
 }
 
 html[data-rayluno-judge-mode="true"] .transcript p {
+  font-size: clamp(16px, 1.35vw, 20px);
+  line-height: 1.65;
   text-wrap: balance;
 }
 
@@ -118,17 +120,18 @@ html[data-rayluno-judge-mode="true"] .transcript p {
 }
 
 .judge-proof-strip > span {
-  min-height: 35px;
+  min-height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 7px 9px;
+  padding: 8px 10px;
   border: 1px solid rgba(122, 245, 229, 0.12);
   border-radius: 11px;
-  color: #aabdc4;
+  color: #b6c8ce;
   background: rgba(9, 17, 28, 0.62);
-  font-size: 9px;
+  font-size: 11px;
+  line-height: 1.35;
   text-align: center;
 }
 
