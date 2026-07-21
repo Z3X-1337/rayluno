@@ -11,7 +11,8 @@ def test_judge_polish_assets_are_explicitly_limited_to_judge_mode() -> None:
 
     assert "judge_polish.css" in source
     assert "judge_polish.js" in source
-    assert "if self._judge_mode else" in source
+    assert "if self._judge_mode" in source
+    assert 'else ""' in source
     assert "data-rayluno-judge-polish" in source
 
 
